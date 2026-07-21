@@ -12,4 +12,9 @@ class ApiVersionTest {
         assertTrue(ApiVersion.V1.supports(new ApiVersion(1, 0)));
         assertFalse(ApiVersion.V1.supports(new ApiVersion(2, 0)));
     }
+
+    @Test
+    void rejectsVersionsThatRequireANewerMinorContract() {
+        assertFalse(ApiVersion.V1.supports(new ApiVersion(1, 1)));
+    }
 }

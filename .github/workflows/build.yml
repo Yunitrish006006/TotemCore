@@ -17,3 +17,16 @@ jobs:
           java-version: '25'
       - run: chmod +x gradlew
       - run: ./gradlew build --no-daemon --stacktrace
+      - name: Verify Core-only Dedicated Server startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p run/server
+          printf 'eula=true\n' > run/server/eula.txt
+          set +e
+          timeout --signal=TERM --kill-after=15s 75s ./gradlew runServer --no-daemon --stacktrace > core-server.log 2>&1
+          status=$?
+          set -e
+          test "${status}" -eq 124
+          grep -F 'TotemCore API 1.0 initialized without gameplay registration' core-server.log
+          grep -F 'Done (' core-server.log
