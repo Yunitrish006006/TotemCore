@@ -5,6 +5,10 @@ and expose a contract version.  Only API conventions, lifecycle events,
 migration dispatch, identifier/permission primitives and version negotiation
 belong here.
 
+`death.DeathBackpackNodeLifecycle` is an optional v1 contract: a Remnant-like
+module may publish a backpack binding while a Nexus-like module supplies the
+adapter. Core never supplies either gameplay implementation.
+
 Gameplay code is prohibited: items, blocks, entities, menus, recipes, client
 screens, renderers, Mixins, feature SavedData, Discord, Remnant, Automata and
 Nexus implementations all belong to their feature repositories.
