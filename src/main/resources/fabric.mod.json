@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "totem-core",
+  "version": "${version}",
+  "name": "TotemCore",
+  "description": "Versioned shared API contracts for Totem feature mods.",
+  "environment": "*",
+  "entrypoints": { "main": ["dev.totem.core.TotemCore"] },
+  "depends": { "fabricloader": ">=0.19.3", "minecraft": "~26.2", "java": ">=25" }
+}
