@@ -42,6 +42,13 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
+tasks.named('processResources', ProcessResources) {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand(version: project.version)
+    }
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
