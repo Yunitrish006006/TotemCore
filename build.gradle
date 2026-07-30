@@ -47,6 +47,14 @@ tasks.named('processResources', ProcessResources) {
     filesMatching('fabric.mod.json') {
         expand(version: project.version)
     }
+    // zh_cn intentionally reuses zh_tw; maintain only the Traditional Chinese source.
+    doLast {
+        copy {
+            from(file('src/main/resources/assets/deadrecall/lang/zh_tw.json'))
+            into(file("${destinationDir}/assets/deadrecall/lang"))
+            rename { 'zh_cn.json' }
+        }
+    }
 }
 
 publishing {

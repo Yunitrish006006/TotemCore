@@ -1,0 +1,26 @@
+{
+  "criteria": {
+    "ready": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:gui/advancements/backgrounds/adventure",
+    "description": {
+      "translate": "advancements.deadrecall.root.description"
+    },
+    "icon": {
+      "id": "minecraft:totem_of_undying"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.deadrecall.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "ready"
+    ]
+  ]
+}

@@ -6,5 +6,6 @@ identifier/permission primitives, and API-version negotiation.  It never owns
 gameplay registry content, client UI, Mixins, or feature SavedData.
 
 The API contract and deprecation policy are in
-[`docs/api-v1.md`](docs/api-v1.md).  Version `0.1.0-SNAPSHOT` is the first
-development artifact; consumers must pin an exact tested version.
+[`docs/api-v1.md`](docs/api-v1.md). Version `0.2.0` is the current candidate;
+it adds the backwards-compatible reverse death-backpack binding callback.
+Consumers must pin an exact tested version.

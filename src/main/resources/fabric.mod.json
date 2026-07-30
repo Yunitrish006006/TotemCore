@@ -3,6 +3,7 @@
   "id": "totem-core",
   "version": "${version}",
   "name": "TotemCore",
+  "icon": "assets/totem-core/icon.png",
   "description": "Versioned shared API contracts for Totem feature mods.",
   "environment": "*",
   "entrypoints": { "main": ["dev.totem.core.TotemCore"] },
