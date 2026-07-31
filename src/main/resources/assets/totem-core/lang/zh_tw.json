@@ -1,0 +1,4 @@
+{
+  "disconnect.totem_core.version_handshake_required": "DeadRecall 要求 Client 與 Server 使用完全相同的模組版本。",
+  "disconnect.totem_core.module_version_mismatch": "TOTEM 模組版本與伺服器不一致：\n%s"
+}

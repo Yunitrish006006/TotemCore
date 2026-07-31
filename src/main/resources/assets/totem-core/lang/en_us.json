@@ -1,0 +1,4 @@
+{
+  "disconnect.totem_core.version_handshake_required": "DeadRecall requires the same module versions on the client and server.",
+  "disconnect.totem_core.module_version_mismatch": "TOTEM module versions do not match the server:\n%s"
+}

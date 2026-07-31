@@ -1,5 +1,6 @@
 package dev.totem.core;
 
+import dev.totem.core.network.ExactModuleVersionGate;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,7 @@ public final class TotemCore implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Core exposes contracts only; feature modules own all gameplay registration.
+        ExactModuleVersionGate.initializeServer();
         LOGGER.info("TotemCore API {}.{} initialized without gameplay registration", 1, 0);
     }
 }

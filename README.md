@@ -1,19 +1,20 @@
 # TotemCore
 
-TotemCore 是 Totem 系列功能模組的共用 API 基礎。它只提供跨模組契約、
-生命週期介面與 API 版本協商，不註冊物品、方塊、GUI、Mixin 或 SavedData。
+TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組契約、
+生命週期介面、API 版本協商，以及 DeadRecall 整合包的登入前精確版本檢查；
+不註冊物品、方塊、GUI、Mixin 或 SavedData。
 
-目前候選版本為 **0.3.0**，API root 為 `dev.totem.core.api.v1`。
+目前候選版本為 **0.4.0**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用 DeadRecall 2.4.6 整合 JAR 時不需另外安裝，整合包已內含
+- 使用 DeadRecall 2.4.7 整合 JAR 時不需另外安裝，整合包已內含
   TotemCore。
-- 使用獨立模組時，把 `totem-core-0.3.0.jar` 與功能模組一起放進
+- 使用獨立模組時，把 `totem-core-0.4.0.jar` 與功能模組一起放進
   Client／Server 的 `mods/`。
-- 所有目前候選功能模組都精確要求 `totem-core =0.3.0`，不要以其他
+- 所有目前候選功能模組都精確要求 `totem-core =0.4.0`，不要以其他
   版本替換。
 
 ## 相容需求
@@ -23,7 +24,7 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它只提供跨模�
 | Minecraft | 26.2 |
 | Fabric Loader | 0.19.3+ |
 | Java | 25+ |
-| Fabric API | Core 本身不要求；功能模組通常要求 |
+| Fabric API | 必須安裝 |
 
 ## 提供的 API
 
@@ -38,6 +39,26 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它只提供跨模�
 | `ApiVersion` | 驗證同 major、足夠 minor 的 API 相容性 |
 | `DeathBackpackNodeLifecycle` | Remnant 與 Nexus 間的選配死亡節點生命週期 |
 | `DeathRetainedItemPolicy` | 功能模組授權一件物品由死亡模組安全保留 |
+| `LegacyItemMigrationRegistry` | DeadRecall 註冊舊 ID 對應，功能模組以 canonical Item 接受並轉換舊堆疊 |
+
+## 多人遊戲精確版本檢查
+
+Server 載入 DeadRecall 時，TotemCore 會在 configuration phase 比對 Client
+與 Server 實際載入的下列每一個版本：
+
+- DeadRecall
+- TotemCore
+- TotemRemnant
+- TotemDiscordBridge
+- TotemAutomata
+- TotemAlchemy
+- TotemEnchanting
+- TotemVanillaTweaks
+- TotemNexus
+
+缺少握手、缺少任一模組或任一版本字串不同，都會在玩家進入世界前拒絕
+連線，並列出各個不一致模組的 Server／Client 版本。沒有載入 DeadRecall
+時此 gate 不啟用，因此獨立模組組合仍可按各自需求使用。
 
 `DeathBackpackNodeLifecycle` 的責任分工：
 
