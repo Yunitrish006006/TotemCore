@@ -27,6 +27,9 @@ jobs:
           timeout --signal=TERM --kill-after=15s 75s ./gradlew runServer --no-daemon --stacktrace > core-server.log 2>&1
           status=$?
           set -e
-          test "${status}" -eq 124
-          grep -F 'TotemCore API 1.0 initialized without gameplay registration' core-server.log
-          grep -F 'Done (' core-server.log
+          if [[ "${status}" -ne 124 ]] \
+              || ! grep -F 'TotemCore API 1.0 initialized without gameplay registration' core-server.log \
+              || ! grep -F 'Done (' core-server.log; then
+            cat core-server.log
+            exit 1
+          fi
