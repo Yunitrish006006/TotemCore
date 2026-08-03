@@ -9,6 +9,12 @@ belong here.
 module may publish a backpack binding while a Nexus-like module supplies the
 adapter. Core never supplies either gameplay implementation.
 
+`death.DeathRetainedItemPolicy` is another optional v1 contract. A feature
+module may authorize one Server-owned ItemStack for death retention, while the
+death-owning module remains solely responsible for transactional extraction,
+persistence and exactly-once respawn restoration. Authorization must not
+itself mutate or copy the item.
+
 Gameplay code is prohibited: items, blocks, entities, menus, recipes, client
 screens, renderers, Mixins, feature SavedData, Discord, Remnant, Automata and
 Nexus implementations all belong to their feature repositories.

@@ -4,8 +4,16 @@
   "version": "${version}",
   "name": "TotemCore",
   "icon": "assets/totem-core/icon.png",
-  "description": "Versioned shared API contracts for Totem feature mods.",
+  "description": "Versioned shared API contracts and compatibility migration primitives for Totem feature mods.",
   "environment": "*",
-  "entrypoints": { "main": ["dev.totem.core.TotemCore"] },
-  "depends": { "fabricloader": ">=0.19.3", "minecraft": "~26.2", "java": ">=25" }
+  "entrypoints": {
+    "main": ["dev.totem.core.TotemCore"],
+    "client": ["dev.totem.core.client.TotemCoreClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "fabric-api": "*",
+    "minecraft": "~26.2",
+    "java": ">=25"
+  }
 }
