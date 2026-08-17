@@ -10,6 +10,12 @@
     "main": ["dev.totem.core.TotemCore"],
     "client": ["dev.totem.core.client.TotemCoreClient"]
   },
+  "mixins": [
+    {
+      "config": "totem-core.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "depends": {
     "fabricloader": ">=0.19.3",
     "fabric-api": "*",

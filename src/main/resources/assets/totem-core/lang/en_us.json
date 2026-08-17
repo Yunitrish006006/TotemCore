@@ -1,4 +1,21 @@
 {
+  "book.totem.manual.contents": "Contents",
+  "book.totem.manual.cover": "TOTEM MANUAL\n\nThis book contains %s guide section(s).\n\nSelect Split to make one guide per module. Hold two guides and use a manual source to merge them again.",
+  "book.totem.manual.section": "%s\n\nThis section is supplied by an installed Totem module.",
+  "book.totem.manual.getting_started.title": "Totem Starter Guide",
+  "book.totem.manual.getting_started.page.1": "WELCOME\n\nThis starter guide is yours to keep. Each Totem module has a source block that records its own method guide.",
+  "book.totem.manual.getting_started.page.2": "DISCOVER\n\nCraft a module's first block. Its advancement tells you which block to record next.",
+  "book.totem.manual.getting_started.page.3": "RECORD\n\nUse this guide, another Totem guide, or a plain book on that block. A generated guide is never consumed; a plain book becomes the new module guide.",
   "disconnect.totem_core.version_handshake_required": "DeadRecall requires the same module versions on the client and server.",
-  "disconnect.totem_core.module_version_mismatch": "TOTEM module versions do not match the server:\n%s"
+  "disconnect.totem_core.module_version_mismatch": "TOTEM module versions do not match the server:\n%s",
+  "item.totem.manual": "Totem Manual",
+  "button.totem.manual.split": "Split",
+  "message.totem.manual.consolidated": "The two generated Totem manuals were consolidated.",
+  "message.totem.manual.migrated": "The old module guide was upgraded to the Totem Manual.",
+  "message.totem.manual.received": "You recorded a Totem Manual.",
+  "message.totem.manual.basic_received": "Your Totem Starter Guide has been added to your inventory.",
+  "message.totem.manual.refreshed": "Your Totem Manual was refreshed.",
+  "message.totem.manual.split_missing": "Hold the Totem Manual you want to split.",
+  "message.totem.manual.split_success": "The Totem Manual was split into %s module guides.",
+  "message.totem.manual.split_unavailable": "This guide has only one section and cannot be split further."
 }

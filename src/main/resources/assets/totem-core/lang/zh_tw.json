@@ -1,4 +1,21 @@
 {
+  "book.totem.manual.contents": "目錄",
+  "book.totem.manual.cover": "TOTEM 手冊\n\n本書收錄 %s 個教學章節。\n\n按「拆分」可分成各模組手冊；雙手各持一本並對手冊來源使用可重新合併。",
+  "book.totem.manual.section": "%s\n\n本章內容由已安裝的 Totem 模組提供。",
+  "book.totem.manual.getting_started.title": "Totem 基礎手冊",
+  "book.totem.manual.getting_started.page.1": "歡迎\n\n這本基礎手冊會一直陪著你。每個 Totem 模組都有一個能記錄該模組方法手冊的來源方塊。",
+  "book.totem.manual.getting_started.page.2": "探索\n\n先製作模組的第一個方塊。完成後，進度提示會告訴你接著要記錄哪個方塊。",
+  "book.totem.manual.getting_started.page.3": "記錄\n\n拿這本手冊、其他 Totem 手冊或普通書本對該方塊按右鍵。系統手冊不會消耗；普通書本會變成新的模組手冊。",
   "disconnect.totem_core.version_handshake_required": "DeadRecall 要求 Client 與 Server 使用完全相同的模組版本。",
-  "disconnect.totem_core.module_version_mismatch": "TOTEM 模組版本與伺服器不一致：\n%s"
+  "disconnect.totem_core.module_version_mismatch": "TOTEM 模組版本與伺服器不一致：\n%s",
+  "item.totem.manual": "Totem 手冊",
+  "button.totem.manual.split": "拆分",
+  "message.totem.manual.consolidated": "兩本系統生成的 Totem 手冊已整合為一本。",
+  "message.totem.manual.migrated": "舊版模組手冊已升級為 Totem 手冊。",
+  "message.totem.manual.received": "你記錄了一本 Totem 手冊。",
+  "message.totem.manual.basic_received": "Totem 基礎手冊已放入你的物品欄。",
+  "message.totem.manual.refreshed": "Totem 手冊內容已刷新。",
+  "message.totem.manual.split_missing": "請先將要拆分的 Totem 手冊拿在手上。",
+  "message.totem.manual.split_success": "Totem 手冊已拆分為 %s 本模組手冊。",
+  "message.totem.manual.split_unavailable": "這本手冊只有一個章節，無法再拆分。"
 }

@@ -1,4 +1,6 @@
 {
-  "advancements.deadrecall.root.title": "TOTEM 圖靈騰系統",
-  "advancements.deadrecall.root.description": "探索所有 TOTEM 模組與相關進度。"
+  "advancements.deadrecall.knowledge_is_power.description": "取得第一本模組方法手冊。",
+  "advancements.deadrecall.knowledge_is_power.title": "知識就是力量",
+  "advancements.deadrecall.root.title": "從手冊開始",
+  "advancements.deadrecall.root.description": "取得 Totem 基礎手冊，開始探索各模組的方法。"
 }
