@@ -2,19 +2,20 @@
 
 TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組契約、
 生命週期介面、API 版本協商，以及 DeadRecall 整合包的登入前精確版本檢查；
-不註冊物品、方塊、GUI、Mixin 或 SavedData。
+不註冊物品、方塊或 SavedData。客戶端會替正式 Totem 手冊提供共用雙頁
+版面，但不取代一般原版書本。
 
-目前候選版本為 **0.4.0**，API root 為 `dev.totem.core.api.v1`。
+目前候選版本為 **0.6.0**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用 DeadRecall 2.4.7 整合 JAR 時不需另外安裝，整合包已內含
+- 使用 DeadRecall 2.4.11 整合 JAR 時不需另外安裝，整合包已內含
   TotemCore。
-- 使用獨立模組時，把 `totem-core-0.4.0.jar` 與功能模組一起放進
+- 使用獨立模組時，把 `totem-core-0.6.0.jar` 與功能模組一起放進
   Client／Server 的 `mods/`。
-- 所有目前候選功能模組都精確要求 `totem-core =0.4.0`，不要以其他
+- 所有目前候選功能模組都精確要求 `totem-core =0.6.0`，不要以其他
   版本替換。
 
 ## 相容需求
@@ -40,6 +41,8 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組�
 | `DeathBackpackNodeLifecycle` | Remnant 與 Nexus 間的選配死亡節點生命週期 |
 | `DeathRetainedItemPolicy` | 功能模組授權一件物品由死亡模組安全保留 |
 | `LegacyItemMigrationRegistry` | DeadRecall 註冊舊 ID 對應，功能模組以 canonical Item 接受並轉換舊堆疊 |
+| `manual.*` | 功能模組登記本地化章節，組裝、刷新、拆分及重新整合原版 Totem 手冊 |
+| `client.manual.*` | 共用雙頁手冊版面，以及功能模組可選的頁面圖示覆蓋註冊表 |
 
 ## 多人遊戲精確版本檢查
 

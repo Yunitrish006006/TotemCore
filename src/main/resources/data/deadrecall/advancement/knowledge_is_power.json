@@ -1,0 +1,27 @@
+{
+  "parent": "deadrecall:root",
+  "criteria": {
+    "has_manual": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.deadrecall.knowledge_is_power.description"
+    },
+    "icon": {
+      "id": "minecraft:written_book"
+    },
+    "hidden": true,
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.deadrecall.knowledge_is_power.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_manual"
+    ]
+  ]
+}

@@ -20,8 +20,11 @@ public final class ModuleVersionSet {
             "totem-automata",
             "totem-alchemy",
             "totem-enchanting",
+            "totem-excavation",
+            "totem-locksmith",
             "totem-vanilla-tweaks",
-            "totem-nexus"
+            "totem-nexus",
+            "totem-villagers"
     );
 
     private ModuleVersionSet() {

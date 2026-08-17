@@ -1,7 +1,7 @@
 {
   "criteria": {
-    "ready": {
-      "trigger": "minecraft:tick"
+    "received_basic_manual": {
+      "trigger": "minecraft:impossible"
     }
   },
   "display": {
@@ -13,14 +13,14 @@
     "icon": {
       "id": "minecraft:totem_of_undying"
     },
-    "show_toast": false,
+    "show_toast": true,
     "title": {
       "translate": "advancements.deadrecall.root.title"
     }
   },
   "requirements": [
     [
-      "ready"
+      "received_basic_manual"
     ]
   ]
 }
