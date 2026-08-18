@@ -132,22 +132,24 @@ public final class TotemManualPlayerHelper {
         boolean otherManual = recognized(other, legacyRecognizer);
 
         Result result;
-        if (activeManual && otherManual) {
-            boolean migrated = !TotemManualAssembler.isCanonical(active)
-                    || !TotemManualAssembler.isCanonical(other);
-            List<TotemManualSection> activeSections = sourceSectionsOf(
-                    active, sections, legacyRecognizer);
-            List<TotemManualSection> otherSections = sourceSectionsOf(
-                    other, sections, legacyRecognizer);
-            TotemManualAssembler.rebuild(active, mergedSections(
-                    mergedSections(activeSections, otherSections),
+        if (activeManual) {
+            boolean migrated = !TotemManualAssembler.isCanonical(active);
+            List<TotemManualSection> merged = mergedSections(
+                    sourceSectionsOf(active, sections, legacyRecognizer),
                     sections
-            ));
-            other.shrink(1);
-            result = migrated ? Result.MIGRATED_AND_CONSOLIDATED : Result.CONSOLIDATED;
-        } else if (legacyRecognizer.test(active)) {
-            TotemManualAssembler.rebuild(active, sections);
-            result = Result.MIGRATED;
+            );
+            if (otherManual) {
+                migrated = migrated || !TotemManualAssembler.isCanonical(other);
+                merged = mergedSections(
+                        merged,
+                        sourceSectionsOf(other, sections, legacyRecognizer)
+                );
+                other.shrink(1);
+                result = migrated ? Result.MIGRATED_AND_CONSOLIDATED : Result.CONSOLIDATED;
+            } else {
+                result = migrated ? Result.MIGRATED : Result.REFRESHED;
+            }
+            TotemManualAssembler.rebuild(active, merged);
         } else {
             ItemStack existing = findExactGuide(player, sections);
             if (existing != null) {
