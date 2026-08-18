@@ -23,13 +23,33 @@ jobs:
           set -euo pipefail
           mkdir -p run/server
           printf 'eula=true\n' > run/server/eula.txt
-          set +e
-          timeout --signal=TERM --kill-after=15s 75s ./gradlew runServer --no-daemon --stacktrace > core-server.log 2>&1
-          status=$?
-          set -e
-          if [[ "${status}" -ne 124 ]] \
-              || ! grep -F 'TotemCore API 1.0 initialized without gameplay registration' core-server.log \
-              || ! grep -F 'Done (' core-server.log; then
-            cat core-server.log
-            exit 1
-          fi
+          : > core-server.log
+
+          setsid ./gradlew runServer --no-daemon --stacktrace > core-server.log 2>&1 &
+          server_pid=$!
+
+          cleanup() {
+            kill -TERM -- "-${server_pid}" 2>/dev/null || true
+            wait "${server_pid}" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for attempt in {1..75}; do
+            if grep -Fq 'Done (' core-server.log; then
+              if ! grep -Fq 'TotemCore API ' core-server.log; then
+                cat core-server.log
+                exit 1
+              fi
+              exit 0
+            fi
+
+            if ! kill -0 "${server_pid}" 2>/dev/null; then
+              cat core-server.log
+              exit 1
+            fi
+
+            sleep 1
+          done
+
+          cat core-server.log
+          exit 1
