@@ -5,18 +5,18 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組�
 不註冊物品、方塊或 SavedData。客戶端會替正式 Totem 手冊提供共用雙頁
 版面，但不取代一般原版書本。
 
-目前候選版本為 **0.6.0**，API root 為 `dev.totem.core.api.v1`。
+目前版本為 **0.6.1**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用 DeadRecall 2.4.11 整合 JAR 時不需另外安裝，整合包已內含
+- 使用 DeadRecall 2.4.20 整合 JAR 時不需另外安裝，整合包已內含
   TotemCore。
-- 使用獨立模組時，把 `totem-core-0.6.0.jar` 與功能模組一起放進
-  Client／Server 的 `mods/`。
-- 所有目前候選功能模組都精確要求 `totem-core =0.6.0`，不要以其他
-  版本替換。
+- 使用獨立模組時，把 `totem-core-0.6.1.jar` 與相同 lockstep release 的
+  功能模組一起放進 Client／Server 的 `mods/`。
+- 目前 lockstep 功能模組精確要求 `totem-core =0.6.1`，不要混用舊的
+  `0.6.0` standalone JAR。
 
 ## 相容需求
 
@@ -56,8 +56,11 @@ Server 載入 DeadRecall 時，TotemCore 會在 configuration phase 比對 Clien
 - TotemAutomata
 - TotemAlchemy
 - TotemEnchanting
+- TotemExcavation
+- TotemLocksmith
 - TotemVanillaTweaks
 - TotemNexus
+- TotemVillagers
 
 缺少握手、缺少任一模組或任一版本字串不同，都會在玩家進入世界前拒絕
 連線，並列出各個不一致模組的 Server／Client 版本。沒有載入 DeadRecall
@@ -84,6 +87,12 @@ DeathBackpackNodeLifecycle.current().ifPresent(lifecycle -> {
 `TotemEventBus` 會隔離單一 subscriber 的失敗；沒有 subscriber 時發布
 是安全的 no-op。Discord Bridge 可獨立訂閱上述事件，因此 standalone
 組合不再需要 DeadRecall 安裝反射接線。
+
+## 0.6.1 發布重點
+
+- 將已合併的 Totem Manual source acquisition 修正發布成新的唯一版本身分。
+- 修正玩家手持 canonical Totem Manual 使用模組 source 時，章節應合併進手上手冊，而不是額外產生另一冊的行為。
+- 公開 API major/minor 不變；這是 lockstep patch release。
 
 ## API 版本政策
 
