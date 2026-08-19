@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Process-local registry for compatibility bundles that translate legacy item
- * identifiers to their canonical owner identifiers.
+ * Process-local registry that translates legacy item identifiers to their
+ * canonical Totem owner identifiers.
  *
- * <p>Core owns only the migration mechanism. The compatibility bundle owns
- * every concrete mapping and the placeholder registrations required to decode
- * old saves. Feature modules can therefore remain standalone and ask this API
- * whether a stack belongs to one of their canonical item families.</p>
+ * <p>Mappings may be registered before the canonical feature module has
+ * registered its item. This allows TotemCore to keep old save identifiers
+ * decode-safe even when DeadRecall is no longer installed. The canonical item
+ * is resolved lazily from the item registry when a stack is actually used.</p>
  */
 public final class LegacyItemMigrationRegistry {
     private static final Map<Identifier, Target> MAPPINGS = new LinkedHashMap<>();
@@ -25,10 +25,24 @@ public final class LegacyItemMigrationRegistry {
     private LegacyItemMigrationRegistry() {
     }
 
+    public static synchronized void registerDeferred(Identifier legacyId, Identifier canonicalId) {
+        Objects.requireNonNull(legacyId, "legacyId");
+        Objects.requireNonNull(canonicalId, "canonicalId");
+        if (legacyId.equals(canonicalId)) {
+            throw new IllegalArgumentException("Legacy and canonical item IDs must differ: " + legacyId);
+        }
+
+        Target target = new Target(canonicalId, null);
+        Target existing = MAPPINGS.putIfAbsent(legacyId, target);
+        if (existing != null && !existing.id().equals(canonicalId)) {
+            throw new IllegalStateException(
+                    "Legacy item ID " + legacyId + " is already mapped to " + existing.id()
+            );
+        }
+    }
+
     public static synchronized void register(Identifier legacyId, Identifier canonicalId) {
-        Item canonicalItem = BuiltInRegistries.ITEM.containsKey(canonicalId)
-                ? BuiltInRegistries.ITEM.getValue(canonicalId)
-                : null;
+        Item canonicalItem = resolveRegisteredItem(canonicalId);
         if (canonicalItem == null) {
             throw new IllegalStateException(
                     "Canonical item must be registered before its migration: " + canonicalId
@@ -50,12 +64,13 @@ public final class LegacyItemMigrationRegistry {
         }
 
         Target target = new Target(canonicalId, canonicalItem);
-        Target existing = MAPPINGS.putIfAbsent(legacyId, target);
-        if (existing != null && !existing.equals(target)) {
+        Target existing = MAPPINGS.get(legacyId);
+        if (existing != null && !existing.id().equals(canonicalId)) {
             throw new IllegalStateException(
                     "Legacy item ID " + legacyId + " is already mapped to " + existing.id()
             );
         }
+        MAPPINGS.put(legacyId, target);
     }
 
     public static ItemStack migrate(ItemStack stack) {
@@ -68,10 +83,15 @@ public final class LegacyItemMigrationRegistry {
         synchronized (LegacyItemMigrationRegistry.class) {
             target = MAPPINGS.get(legacyId);
         }
-        if (target == null || target.item() == stack.getItem()) {
+        if (target == null) {
             return stack;
         }
-        return stack.transmuteCopy(target.item(), stack.getCount());
+
+        Item canonicalItem = target.item() != null ? target.item() : resolveRegisteredItem(target.id());
+        if (canonicalItem == null || canonicalItem == stack.getItem()) {
+            return stack;
+        }
+        return stack.transmuteCopy(canonicalItem, stack.getCount());
     }
 
     public static boolean matches(ItemStack stack, Item canonicalItem) {
@@ -85,7 +105,7 @@ public final class LegacyItemMigrationRegistry {
         Identifier stackId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         synchronized (LegacyItemMigrationRegistry.class) {
             Target target = MAPPINGS.get(stackId);
-            return target != null && target.item() == canonicalItem;
+            return target != null && target.id().equals(BuiltInRegistries.ITEM.getKey(canonicalItem));
         }
     }
 
@@ -93,6 +113,13 @@ public final class LegacyItemMigrationRegistry {
         Map<Identifier, Identifier> snapshot = new LinkedHashMap<>();
         MAPPINGS.forEach((legacyId, target) -> snapshot.put(legacyId, target.id()));
         return Collections.unmodifiableMap(snapshot);
+    }
+
+    private static Item resolveRegisteredItem(Identifier id) {
+        if (!BuiltInRegistries.ITEM.containsKey(id)) {
+            return null;
+        }
+        return BuiltInRegistries.ITEM.getValue(id);
     }
 
     private record Target(Identifier id, Item item) {
