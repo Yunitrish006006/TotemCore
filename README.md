@@ -1,22 +1,21 @@
 # TotemCore
 
 TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組契約、
-生命週期介面、API 版本協商，以及 DeadRecall 整合包的登入前精確版本檢查；
-不註冊物品、方塊或 SavedData。客戶端會替正式 Totem 手冊提供共用雙頁
-版面，但不取代一般原版書本。
+生命週期介面、API 版本協商、共用好友關係，以及 DeadRecall 整合包的登入前
+精確版本檢查；不註冊物品、方塊或功能模組專屬 SavedData。客戶端會替正式
+Totem 手冊提供共用雙頁版面，但不取代一般原版書本。
 
-目前版本為 **0.6.1**，API root 為 `dev.totem.core.api.v1`。
+目前版本為 **0.7.0**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用 DeadRecall 2.4.20 整合 JAR 時不需另外安裝，整合包已內含
-  TotemCore。
-- 使用獨立模組時，把 `totem-core-0.6.1.jar` 與相同 lockstep release 的
-  功能模組一起放進 Client／Server 的 `mods/`。
-- 目前 lockstep 功能模組精確要求 `totem-core =0.6.1`，不要混用舊的
-  `0.6.0` standalone JAR。
+- DeadRecall 整合 JAR 會內含對應版本的 TotemCore，不需另外安裝。
+- 使用獨立模組時，把 `totem-core-0.7.0.jar` 與相容的功能模組一起放進
+  Client／Server 的 `mods/`。
+- 0.7.x 功能模組改用驗證過的 Core minor 範圍；目前目標為
+  `totem-core >=0.7.0 <0.8.0`，不再因 Core patch release 強迫全系列重發。
 
 ## 相容需求
 
@@ -38,11 +37,23 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組�
 | `SpaceUnitPublicUpdateEvent` | Nexus 公開 Space Unit 狀態更新 |
 | `AdminAuditEvent` | 功能模組完成管理操作後的安全稽核摘要 |
 | `ApiVersion` | 驗證同 major、足夠 minor 的 API 相容性 |
+| `TotemFriendshipApi` | 全系列唯一好友／邀請資料來源；查詢、邀請、接受與解除關係 |
 | `DeathBackpackNodeLifecycle` | Remnant 與 Nexus 間的選配死亡節點生命週期 |
 | `DeathRetainedItemPolicy` | 功能模組授權一件物品由死亡模組安全保留 |
 | `LegacyItemMigrationRegistry` | DeadRecall 註冊舊 ID 對應，功能模組以 canonical Item 接受並轉換舊堆疊 |
 | `manual.*` | 功能模組登記本地化章節，組裝、刷新、拆分及重新整合原版 Totem 手冊 |
 | `client.manual.*` | 共用雙頁手冊版面，以及功能模組可選的頁面圖示覆蓋註冊表 |
+
+## 共用好友系統
+
+Core 0.7.0 起由 `TotemFriendshipApi` 擁有整個 Totem 系列的好友關係與待處理
+邀請。Nexus 只負責好友 UI、Space Unit 與傳送用途；Locksmith 的 Friends
+存取模式也直接查詢 Core，不再要求 Nexus 必須安裝。其他功能模組若需要
+好友權限，應使用同一個 API，不要另存一份關係資料。
+
+為保留舊世界，0.7.x 仍使用歷史 SavedData identifier
+`deadrecall:space_friends`。因此從舊 Nexus 升級時，已存在的 friendships 與
+pending invites 會由 Core 直接接手，不需要玩家重新加好友。
 
 ## 多人遊戲精確版本檢查
 
@@ -66,6 +77,10 @@ Server 載入 DeadRecall 時，TotemCore 會在 configuration phase 比對 Clien
 連線，並列出各個不一致模組的 Server／Client 版本。沒有載入 DeadRecall
 時此 gate 不啟用，因此獨立模組組合仍可按各自需求使用。
 
+Fabric dependency range 與 DeadRecall exact-module handshake 是兩層不同保護：
+前者允許經驗證的 Core patch 相容版本，後者仍要求同一台 DeadRecall
+Server 與 Client 實際載入的完整模組版本集合完全一致。
+
 `DeathBackpackNodeLifecycle` 的責任分工：
 
 1. Remnant 建立死亡背包前呼叫 `create` 建立選配節點。
@@ -88,19 +103,21 @@ DeathBackpackNodeLifecycle.current().ifPresent(lifecycle -> {
 是安全的 no-op。Discord Bridge 可獨立訂閱上述事件，因此 standalone
 組合不再需要 DeadRecall 安裝反射接線。
 
-## 0.6.1 發布重點
+## 0.7.0 發布重點
 
-- 將已合併的 Totem Manual source acquisition 修正發布成新的唯一版本身分。
-- 修正玩家手持 canonical Totem Manual 使用模組 source 時，章節應合併進手上手冊，而不是額外產生另一冊的行為。
-- 公開 API major/minor 不變；這是 lockstep patch release。
+- 將好友與 pending invitation 的唯一資料來源從 TotemNexus 搬到 TotemCore。
+- 新增 `dev.totem.core.api.v1.social.TotemFriendshipApi`。
+- 保留 `deadrecall:space_friends` 儲存識別，舊世界好友資料可直接延續。
+- 正式區分 feature-specific SavedData 與 Core-owned cross-module identity / relationship primitives。
+- 下游功能模組改用 Core minor 相容範圍，CI 仍固定在已驗證的 Core commit。
 
 ## API 版本政策
 
 - Patch 版本保留公開 signature 與語意。
 - Minor 版本只加入向後相容 API。
 - 不相容變更必須升 major。
-- Deprecated API 至少保留兩個 lockstep bundle release 與一個已發佈
-  Core minor release，並提供替代方式與相容測試。
+- Deprecated API 至少保留兩個 bundle release 與一個已發佈 Core minor
+  release，並提供替代方式與相容測試。
 
 完整契約見 [TotemCore API v1](docs/api-v1.md)。
 
@@ -112,5 +129,6 @@ DeathBackpackNodeLifecycle.current().ifPresent(lifecycle -> {
 ./gradlew build
 ```
 
-輸出位於 `build/libs/`。功能 repository 應把通過測試的精確 Core 版本
-寫入 `fabric.mod.json`，並避免直接依賴其他功能模組。
+輸出位於 `build/libs/`。功能 repository 的 `fabric.mod.json` 應使用經驗證的
+Core minor 相容範圍；CI 則固定在明確 Core commit，避免未驗證的 Core 變更
+偷偷進入 release build。功能模組仍應避免直接依賴其他功能模組。

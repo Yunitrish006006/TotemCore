@@ -1,9 +1,18 @@
 # TotemCore API v1
 
-The stable root is `dev.totem.core.api.v1`.  Public event values are immutable
-and expose a contract version.  Only API conventions, lifecycle events,
-migration dispatch, identifier/permission primitives and version negotiation
-belong here.
+The stable root is `dev.totem.core.api.v1`. Public event values are immutable
+and expose a contract version. API conventions, lifecycle events, migration
+dispatch, identifier/permission primitives, shared social relationship
+primitives and version negotiation belong here.
+
+`social` is the canonical Totem-wide friendship contract. Core owns the
+server-authoritative friendship and pending-invitation data plus the stable
+`TotemFriendshipApi`. Feature modules must query or mutate friendships through
+that API instead of mirroring social state. The persisted storage identifier
+remains `deadrecall:space_friends` in Core 0.7.x so worlds created by older
+Nexus builds retain existing friendships and invitations without a destructive
+copy migration. Nexus may provide friend-management UI and use friendships for
+teleportation; Locksmith and other modules may consume the same Core relation.
 
 `death.DeathBackpackNodeLifecycle` is an optional v1 contract: a Remnant-like
 module may publish a backpack binding while a Nexus-like module supplies the
@@ -30,8 +39,10 @@ page-specific diagrams. The shared layout exposes a Split action for a held
 multi-section manual; ordinary written books retain vanilla rendering.
 
 Gameplay code is prohibited: items, blocks, entities, menus, recipes, client
-screens, feature-specific renderers, feature SavedData, Discord, Remnant,
-Automata and Nexus implementations all belong to their feature repositories.
+screens, feature-specific renderers, Discord, Remnant, Automata and Nexus
+implementations all belong to their feature repositories. Feature-specific
+SavedData also stays outside Core. Cross-module identity/relationship state is
+an explicit exception when Core is the canonical owner, as with `social`.
 The canonical manual's client-only Mixin and generic overlay seam are the sole
 shared presentation exception.
 
