@@ -14,15 +14,40 @@ import java.util.Objects;
  * Process-local registry that translates legacy item identifiers to their
  * canonical Totem owner identifiers.
  *
- * <p>Mappings may be registered before the canonical feature module has
- * registered its item. This allows TotemCore to keep old save identifiers
- * decode-safe even when DeadRecall is no longer installed. The canonical item
- * is resolved lazily from the item registry when a stack is actually used.</p>
+ * <p>The permanent DeadRecall compatibility aliases are seeded when this class
+ * is initialized. They therefore exist independently of Fabric entrypoint
+ * ordering. Feature modules may still register or resolve additional mappings,
+ * and canonical items remain lazily resolved when a stack is actually used.</p>
  */
 public final class LegacyItemMigrationRegistry {
-    private static final Map<Identifier, Target> MAPPINGS = new LinkedHashMap<>();
+    private static final Map<Identifier, Target> MAPPINGS = createInitialMappings();
 
     private LegacyItemMigrationRegistry() {
+    }
+
+    private static Map<Identifier, Target> createInitialMappings() {
+        Map<Identifier, Target> mappings = new LinkedHashMap<>();
+        putBuiltIn(mappings, "backpack_basic", "remnant/backpack_basic");
+        putBuiltIn(mappings, "backpack_standard", "remnant/backpack_standard");
+        putBuiltIn(mappings, "backpack_advanced", "remnant/backpack_advanced");
+        putBuiltIn(mappings, "backpack_netherite", "remnant/backpack_netherite");
+        putBuiltIn(mappings, "death_backpack", "remnant/death_backpack");
+        putBuiltIn(mappings, "copper_wrench", "automata/copper_wrench");
+        putBuiltIn(mappings, "saltpeter", "alchemy/saltpeter");
+        putBuiltIn(mappings, "pig_manure", "alchemy/pig_manure");
+        putBuiltIn(mappings, "wood_ash", "alchemy/wood_ash");
+        putBuiltIn(mappings, "cocoa_powder", "alchemy/cocoa_powder");
+        putBuiltIn(mappings, "hot_cocoa", "alchemy/hot_cocoa");
+        putBuiltIn(mappings, "cherry_brew", "alchemy/cherry_brew");
+        putBuiltIn(mappings, "stone_bowl", "alchemy/stone_bowl");
+        putBuiltIn(mappings, "sulfur_bowl", "alchemy/sulfur_bowl");
+        return mappings;
+    }
+
+    private static void putBuiltIn(Map<Identifier, Target> mappings, String legacyPath, String canonicalPath) {
+        Identifier legacyId = Identifier.fromNamespaceAndPath("deadrecall", legacyPath);
+        Identifier canonicalId = Identifier.fromNamespaceAndPath("totem", canonicalPath);
+        mappings.put(legacyId, new Target(canonicalId, null));
     }
 
     public static synchronized void registerDeferred(Identifier legacyId, Identifier canonicalId) {
