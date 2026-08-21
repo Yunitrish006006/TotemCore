@@ -77,9 +77,7 @@ public final class TotemManualPlayerHelper {
                 player.setItemInHand(activeHand, manual);
             } else {
                 active.shrink(1);
-                if (!player.getInventory().add(manual)) {
-                    player.drop(manual, false);
-                }
+                insertOrDrop(player, manual);
             }
             result = Result.CREATED;
         } else {
@@ -128,34 +126,48 @@ public final class TotemManualPlayerHelper {
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
         ItemStack other = player.getItemInHand(otherHand);
-        boolean activeManual = recognized(active, legacyRecognizer);
-        boolean otherManual = recognized(other, legacyRecognizer);
 
-        Result result;
-        if (activeManual) {
-            boolean migrated = !TotemManualAssembler.isCanonical(active);
-            List<TotemManualSection> merged = mergedSections(
-                    sourceSectionsOf(active, sections, legacyRecognizer),
-                    sections
-            );
-            if (otherManual) {
-                migrated = migrated || !TotemManualAssembler.isCanonical(other);
-                merged = mergedSections(
-                        merged,
-                        sourceSectionsOf(other, sections, legacyRecognizer)
-                );
+        boolean activeLegacy = legacyRecognizer.test(active);
+        boolean activeExactTarget = isExactGuide(active, sections);
+        boolean otherLegacy = legacyRecognizer.test(other);
+        boolean otherExactTarget = isExactGuide(other, sections);
+        ItemStack existing = findExactGuide(player, sections);
+        ModuleGuideAction action = moduleGuideAction(
+                activeLegacy,
+                activeExactTarget,
+                otherLegacy,
+                otherExactTarget,
+                existing != null,
+                active.is(Items.BOOK),
+                TotemManualAssembler.isCanonical(active)
+        );
+
+        Result result = Result.PASS;
+        switch (action) {
+            case CONSOLIDATE_ACTIVE -> {
+                TotemManualAssembler.rebuild(active, sections);
                 other.shrink(1);
-                result = migrated ? Result.MIGRATED_AND_CONSOLIDATED : Result.CONSOLIDATED;
-            } else {
-                result = migrated ? Result.MIGRATED : Result.REFRESHED;
+                result = activeLegacy || otherLegacy
+                        ? Result.MIGRATED_AND_CONSOLIDATED
+                        : Result.CONSOLIDATED;
             }
-            TotemManualAssembler.rebuild(active, merged);
-        } else {
-            ItemStack existing = findExactGuide(player, sections);
-            if (existing != null) {
+            case MIGRATE_ACTIVE -> {
+                TotemManualAssembler.rebuild(active, sections);
+                result = Result.MIGRATED;
+            }
+            case REFRESH_ACTIVE -> {
+                TotemManualAssembler.rebuild(active, sections);
+                result = Result.REFRESHED;
+            }
+            case REFRESH_EXISTING -> {
                 TotemManualAssembler.rebuild(existing, sections);
                 result = Result.REFRESHED;
-            } else if (active.is(Items.BOOK)) {
+            }
+            case MIGRATE_OTHER -> {
+                TotemManualAssembler.rebuild(other, sections);
+                result = Result.MIGRATED;
+            }
+            case CREATE_FROM_BOOK -> {
                 ItemStack guide = TotemManualAssembler.create(sections);
                 if (active.getCount() == 1) {
                     player.setItemInHand(activeHand, guide);
@@ -164,9 +176,15 @@ public final class TotemManualPlayerHelper {
                     insertOrDrop(player, guide);
                 }
                 result = Result.CREATED;
-            } else {
+            }
+            case CREATE_FROM_REFERENCE -> {
+                // A canonical guide is a reusable recording reference. Keep it
+                // untouched and deliver a separate target-only module guide.
                 insertOrDrop(player, TotemManualAssembler.create(sections));
                 result = Result.CREATED;
+            }
+            case PASS -> {
+                return Result.PASS;
             }
         }
 
@@ -212,9 +230,7 @@ public final class TotemManualPlayerHelper {
         TotemManualAssembler.rebuild(manual, List.of(sections.getFirst()));
         for (int index = 1; index < sections.size(); index++) {
             ItemStack separated = TotemManualAssembler.create(List.of(sections.get(index)));
-            if (!player.getInventory().add(separated)) {
-                player.drop(separated, false);
-            }
+            insertOrDrop(player, separated);
         }
         playPageSound(player, 1.15F);
         player.sendSystemMessage(Component.translatable(
@@ -279,6 +295,35 @@ public final class TotemManualPlayerHelper {
         return null;
     }
 
+    static boolean isExactGuide(ItemStack stack, List<TotemManualSection> sections) {
+        if (!TotemManualAssembler.isCanonical(stack)) return false;
+        List<Identifier> expected = sections.stream().sorted()
+                .map(TotemManualSection::id).toList();
+        return TotemManualAssembler.sections(stack).stream()
+                .map(TotemManualSection::id).toList().equals(expected);
+    }
+
+    static ModuleGuideAction moduleGuideAction(
+            boolean activeLegacy,
+            boolean activeExactTarget,
+            boolean otherLegacy,
+            boolean otherExactTarget,
+            boolean existingExactTarget,
+            boolean activeBook,
+            boolean activeCanonicalReference
+    ) {
+        if ((activeLegacy || activeExactTarget) && (otherLegacy || otherExactTarget)) {
+            return ModuleGuideAction.CONSOLIDATE_ACTIVE;
+        }
+        if (activeLegacy) return ModuleGuideAction.MIGRATE_ACTIVE;
+        if (activeExactTarget) return ModuleGuideAction.REFRESH_ACTIVE;
+        if (existingExactTarget) return ModuleGuideAction.REFRESH_EXISTING;
+        if (otherLegacy) return ModuleGuideAction.MIGRATE_OTHER;
+        if (activeBook) return ModuleGuideAction.CREATE_FROM_BOOK;
+        if (activeCanonicalReference) return ModuleGuideAction.CREATE_FROM_REFERENCE;
+        return ModuleGuideAction.PASS;
+    }
+
     private static boolean isBasicGuide(ItemStack stack) {
         return TotemManualAssembler.sections(stack).stream()
                 .map(TotemManualSection::id)
@@ -287,9 +332,24 @@ public final class TotemManualPlayerHelper {
     }
 
     private static void insertOrDrop(ServerPlayer player, ItemStack stack) {
-        if (!player.getInventory().add(stack)) {
+        var inventory = player.getInventory();
+        ManualDeliveryAction action = manualDeliveryAction(
+                inventory.getFreeSlot(),
+                inventory.getSlotWithRemainingSpace(stack)
+        );
+        if (action == ManualDeliveryAction.DROP) {
             player.drop(stack, false);
+            return;
         }
+
+        inventory.add(stack);
+        if (!stack.isEmpty()) player.drop(stack, false);
+    }
+
+    static ManualDeliveryAction manualDeliveryAction(int freeSlot, int stackableSlot) {
+        return freeSlot >= 0 || stackableSlot >= 0
+                ? ManualDeliveryAction.INSERT
+                : ManualDeliveryAction.DROP;
     }
 
     private static void playPageSound(ServerPlayer player, float pitch) {
@@ -327,18 +387,6 @@ public final class TotemManualPlayerHelper {
                 : List.of();
     }
 
-    private static List<TotemManualSection> sourceSectionsOf(
-            ItemStack stack,
-            List<TotemManualSection> sourceSections,
-            Predicate<ItemStack> legacyRecognizer
-    ) {
-        return TotemManualAssembler.isCanonical(stack)
-                ? TotemManualAssembler.sections(stack)
-                : legacyRecognizer.test(stack)
-                ? sourceSections
-                : List.of();
-    }
-
     static List<TotemManualSection> mergedSections(
             List<TotemManualSection> first,
             List<TotemManualSection> second
@@ -370,5 +418,21 @@ public final class TotemManualPlayerHelper {
         public String messageKey() {
             return messageKey;
         }
+    }
+
+    enum ModuleGuideAction {
+        CONSOLIDATE_ACTIVE,
+        MIGRATE_ACTIVE,
+        REFRESH_ACTIVE,
+        REFRESH_EXISTING,
+        MIGRATE_OTHER,
+        CREATE_FROM_BOOK,
+        CREATE_FROM_REFERENCE,
+        PASS
+    }
+
+    enum ManualDeliveryAction {
+        INSERT,
+        DROP
     }
 }
