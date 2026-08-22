@@ -230,32 +230,14 @@ public final class TotemManualPlayerHelper {
         return true;
     }
 
-    /** Splits the canonical manual held by the player into one book per installed chapter. */
+    /**
+     * Legacy binary-compatibility endpoint. Unified Totem manuals are no longer split into module books.
+     */
+    @Deprecated(forRemoval = false)
     public static int splitHeldManual(ServerPlayer player) {
         Objects.requireNonNull(player, "player");
-        ItemStack manual = heldCanonicalManual(player);
-        if (manual == null) {
-            player.sendSystemMessage(Component.translatable("message.totem.manual.split_missing"));
-            return 0;
-        }
-
-        List<TotemManualSection> sections = TotemManualAssembler.sections(manual);
-        if (sections.size() <= 1) {
-            player.sendSystemMessage(Component.translatable("message.totem.manual.split_unavailable"));
-            return 0;
-        }
-
-        TotemManualAssembler.rebuild(manual, List.of(sections.getFirst()));
-        for (int index = 1; index < sections.size(); index++) {
-            ItemStack separated = TotemManualAssembler.create(List.of(sections.get(index)));
-            insertOrDrop(player, separated);
-        }
-        playPageSound(player, 1.15F);
-        player.sendSystemMessage(Component.translatable(
-                "message.totem.manual.split_success",
-                sections.size()
-        ));
-        return sections.size();
+        player.sendSystemMessage(Component.translatable("message.totem.manual.split_disabled"));
+        return 0;
     }
 
     /** Refreshes only explicitly marked canonical manuals carried by this player. */
@@ -383,15 +365,6 @@ public final class TotemManualPlayerHelper {
 
     private static boolean recognized(ItemStack stack, Predicate<ItemStack> legacyRecognizer) {
         return TotemManualAssembler.isCanonical(stack) || legacyRecognizer.test(stack);
-    }
-
-    private static ItemStack heldCanonicalManual(ServerPlayer player) {
-        ItemStack mainHand = player.getMainHandItem();
-        if (TotemManualAssembler.isCanonical(mainHand)) {
-            return mainHand;
-        }
-        ItemStack offHand = player.getOffhandItem();
-        return TotemManualAssembler.isCanonical(offHand) ? offHand : null;
     }
 
     private static List<TotemManualSection> sectionsOf(
