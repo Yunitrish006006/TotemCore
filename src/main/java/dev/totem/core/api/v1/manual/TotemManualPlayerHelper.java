@@ -98,10 +98,30 @@ public final class TotemManualPlayerHelper {
     }
 
     /**
-     * Creates or refreshes one module-scoped guide without consuming a marked
-     * guide used as the recording reference.
+     * Records module-owned chapters into the player's shared Totem Manual. The signature is retained
+     * so already-compiled feature modules inherit the unified-manual behavior without API changes.
      */
     public static Result acquireSections(
+            ServerPlayer player,
+            InteractionHand activeHand,
+            List<TotemManualSection> suppliedSections,
+            Identifier advancementId,
+            Predicate<ItemStack> legacyRecognizer
+    ) {
+        return TotemManualChapterRecorder.acquireSections(
+                player,
+                activeHand,
+                suppliedSections,
+                advancementId,
+                legacyRecognizer
+        );
+    }
+
+    /**
+     * Schema-2 acquisition implementation retained only as the recorder's bootstrap/migration path when
+     * a player has no canonical Totem Manual yet. Do not call this from feature modules.
+     */
+    static Result acquireSectionsLegacy(
             ServerPlayer player,
             InteractionHand activeHand,
             List<TotemManualSection> suppliedSections,
@@ -178,8 +198,6 @@ public final class TotemManualPlayerHelper {
                 result = Result.CREATED;
             }
             case CREATE_FROM_REFERENCE -> {
-                // A canonical guide is a reusable recording reference. Keep it
-                // untouched and deliver a separate target-only module guide.
                 insertOrDrop(player, TotemManualAssembler.create(sections));
                 result = Result.CREATED;
             }
