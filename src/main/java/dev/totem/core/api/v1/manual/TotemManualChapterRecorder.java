@@ -49,7 +49,7 @@ public final class TotemManualChapterRecorder {
         if (target == null) {
             // A module source must always produce the shared manual shape. Seed the Core onboarding
             // chapter first instead of creating another module-only guide.
-            return TotemManualPlayerHelper.acquireSections(
+            return TotemManualPlayerHelper.acquireSectionsLegacy(
                     player,
                     activeHand,
                     mergedSections(List.of(TotemManualOnboarding.SECTION), incoming),
