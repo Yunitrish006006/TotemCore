@@ -16,6 +16,7 @@
   "message.totem.manual.received": "你記錄了一本 Totem 手冊。",
   "message.totem.manual.basic_received": "Totem 基礎手冊已放入你的物品欄。",
   "message.totem.manual.refreshed": "Totem 手冊內容已刷新。",
+  "message.totem.manual.split_disabled": "Totem 手冊現在會把所有已記錄章節保留在同一本書中，不再支援拆分。",
   "message.totem.manual.split_missing": "請先將要拆分的 Totem 手冊拿在手上。",
   "message.totem.manual.split_success": "Totem 手冊已拆分為 %s 本模組手冊。",
   "message.totem.manual.split_unavailable": "這本手冊只有一個章節，無法再拆分。"
