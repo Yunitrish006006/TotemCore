@@ -47,11 +47,12 @@ public final class TotemManualChapterRecorder {
 
         ItemStack target = findCanonicalManual(player, activeHand);
         if (target == null) {
-            // Preserve plain-book and legacy migration behavior when the player truly has no Totem Manual yet.
+            // A module source must always produce the shared manual shape. Seed the Core onboarding
+            // chapter first instead of creating another module-only guide.
             return TotemManualPlayerHelper.acquireSections(
                     player,
                     activeHand,
-                    incoming,
+                    mergedSections(List.of(TotemManualOnboarding.SECTION), incoming),
                     advancementId,
                     legacyRecognizer
             );
