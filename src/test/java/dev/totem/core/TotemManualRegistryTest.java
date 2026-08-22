@@ -54,19 +54,33 @@ class TotemManualRegistryTest {
     }
 
     @Test
-    void rejectsContentAboveVanillaPageLimit() {
+    void virtualManualContentCanExceedVanillaWrittenBookLimit() {
         TotemManualSection oversized = new TotemManualSection(
                 Identifier.parse("totem:oversized"),
                 0,
                 "book.test.oversized",
-                java.util.stream.IntStream.range(0, 98)
+                java.util.stream.IntStream.range(0, 150)
                         .mapToObj(page -> "book.test.page." + page)
                         .toList()
         );
-        assertThrows(
-                IllegalStateException.class,
-                () -> TotemManualAssembler.validatePageLimit(List.of(oversized))
-        );
+
+        assertEquals(153, TotemManualAssembler.validatePageLimit(List.of(oversized)));
+        assertEquals(153, TotemManualAssembler.virtualPages(List.of(oversized)).size());
+    }
+
+    @Test
+    void contentsPagesAndChapterTargetsScalePastOneIndexPage() {
+        List<TotemManualSection> sections = java.util.stream.IntStream.range(0, 11)
+                .mapToObj(index -> section(
+                        "totem:chapter_" + index,
+                        index,
+                        "book.test.chapter." + index
+                ))
+                .toList();
+
+        assertEquals(2, TotemManualAssembler.contentsPageCount(sections.size()));
+        assertEquals(3, TotemManualAssembler.sectionStartPage(sections, 0));
+        assertEquals(23, TotemManualAssembler.sectionStartPage(sections, 10));
     }
 
     @Test

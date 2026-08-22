@@ -21,17 +21,22 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Stateless canonical vanilla written-book assembler.
+ * Canonical Totem manual assembler.
  *
- * <p>Only the manual-owned name, written content and namespaced custom-data
- * fields are replaced. Other safe components on an existing stack survive a
- * refresh.</p>
+ * <p>The physical WrittenBookContent deliberately stays tiny: it contains only a cover and a
+ * section-index marker. The client expands that index into an unlimited virtual page sequence, so
+ * gameplay content is no longer constrained by vanilla's written-book page cap.</p>
  */
 public final class TotemManualAssembler {
-    public static final int SCHEMA_VERSION = 2;
-    public static final int MAX_PAGES = 100;
+    public static final int SCHEMA_VERSION = 3;
+    /** Kept for source compatibility. Virtual Totem manuals are no longer page-limited. */
+    @Deprecated(forRemoval = false)
+    public static final int MAX_PAGES = Integer.MAX_VALUE;
+    public static final int CONTENTS_ENTRIES_PER_PAGE = 10;
     public static final String MANUAL_NAME_KEY = "item.totem.manual";
     public static final String COVER_PAGE_KEY = "book.totem.manual.cover";
+    public static final String CONTENTS_PAGE_KEY = "book.totem.manual.contents";
+    public static final String MANUAL_INDEX_PREFIX = "totem_manual_index:";
 
     private static final String BOOK_TITLE = "Totem Manual";
     private static final String BOOK_AUTHOR = "Totem";
@@ -57,16 +62,13 @@ public final class TotemManualAssembler {
     }
 
     public static void rebuild(ItemStack manual) {
-        CompoundTag tag = manual.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        boolean preserveSubset = isCanonical(manual)
-                && tag.getIntOr(SCHEMA_KEY, 0) >= SCHEMA_VERSION
-                && tag.getBooleanOr(SUBSET_KEY, false);
-        List<TotemManualSection> selected = preserveSubset ? sections(manual) : List.of();
-        if (preserveSubset && !selected.isEmpty()) {
-            rebuildInternal(manual, selected, true);
-        } else {
-            rebuildInternal(manual, TotemManualRegistry.global().sections(), false);
+        List<TotemManualSection> selected = isCanonical(manual)
+                ? sections(manual)
+                : TotemManualRegistry.global().sections();
+        if (selected.isEmpty()) {
+            selected = TotemManualRegistry.global().sections();
         }
+        rebuildInternal(manual, selected, !matchesAllRegistered(selected));
     }
 
     public static void rebuild(ItemStack manual, List<TotemManualSection> suppliedSections) {
@@ -85,28 +87,27 @@ public final class TotemManualAssembler {
         }
 
         List<TotemManualSection> sections = normalized(suppliedSections);
-        List<Component> pages = pages(sections);
-        validatePageCount(pages.size());
+        String ids = sectionIds(sections);
+        List<Component> physicalPages = List.of(
+                Component.translatable(COVER_PAGE_KEY, sections.size()),
+                Component.literal(MANUAL_INDEX_PREFIX + ids)
+        );
 
-        manual.set(DataComponents.CUSTOM_NAME, sections.size() == 1
-                ? Component.translatable(sections.getFirst().titleKey())
-                : Component.translatable(MANUAL_NAME_KEY));
+        manual.set(DataComponents.CUSTOM_NAME, Component.translatable(MANUAL_NAME_KEY));
         manual.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(
                 Filterable.passThrough(BOOK_TITLE),
                 BOOK_AUTHOR,
                 0,
-                pages.stream().map(Filterable::<Component>passThrough).toList(),
+                physicalPages.stream().map(Filterable::<Component>passThrough).toList(),
                 false
         ));
 
         CompoundTag tag = manual.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         tag.putBoolean(MARKER_KEY, true);
         tag.putInt(SCHEMA_KEY, SCHEMA_VERSION);
+        // Retain the old field so schema-2 clients fail predictably instead of silently losing metadata.
         tag.putBoolean(SUBSET_KEY, subset);
-        tag.putString(SECTIONS_KEY, sections.stream()
-                .map(section -> section.id().toString())
-                .reduce((left, right) -> left + "," + right)
-                .orElse(""));
+        tag.putString(SECTIONS_KEY, ids);
         tag.putString(REVISION_KEY, revision(sections));
         manual.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
@@ -130,34 +131,80 @@ public final class TotemManualAssembler {
         if (tag.getIntOr(SCHEMA_KEY, 0) != SCHEMA_VERSION) {
             return false;
         }
-        List<TotemManualSection> expected = tag.getBooleanOr(SUBSET_KEY, false)
-                ? sections(stack)
-                : TotemManualRegistry.global().sections();
+        List<TotemManualSection> expected = sections(stack);
         return !expected.isEmpty()
                 && sectionIds(expected).equals(tag.getStringOr(SECTIONS_KEY, ""))
                 && revision(expected).equals(tag.getStringOr(REVISION_KEY, ""));
     }
 
-    /** Returns the installed chapters represented by this manual. */
+    /** Returns the exact recorded chapters represented by this manual. */
     public static List<TotemManualSection> sections(ItemStack stack) {
         if (!isCanonical(stack)) {
             return List.of();
         }
         CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        if (tag.getIntOr(SCHEMA_KEY, 0) < SCHEMA_VERSION
-                || !tag.getBooleanOr(SUBSET_KEY, false)) {
+        int schema = tag.getIntOr(SCHEMA_KEY, 0);
+        // Schema 1 and full schema-2 manuals represented the then-current global manual.
+        if (schema < 2 || schema == 2 && !tag.getBooleanOr(SUBSET_KEY, false)) {
             return TotemManualRegistry.global().sections();
         }
+        return resolveSectionIds(tag.getStringOr(SECTIONS_KEY, ""));
+    }
 
-        Map<Identifier, TotemManualSection> selected = new LinkedHashMap<>();
-        for (String rawId : tag.getStringOr(SECTIONS_KEY, "").split(",")) {
-            Identifier id = Identifier.tryParse(rawId);
-            if (id != null) {
-                TotemManualRegistry.global().section(id)
-                        .ifPresent(section -> selected.put(section.id(), section));
-            }
+    /** Resolves the compact physical index page into locally registered chapter definitions. */
+    public static List<TotemManualSection> sectionsFromIndexPage(Component indexPage) {
+        if (indexPage == null) {
+            return List.of();
         }
-        return selected.values().stream().sorted().toList();
+        String raw = indexPage.getString();
+        if (!raw.startsWith(MANUAL_INDEX_PREFIX)) {
+            return List.of();
+        }
+        return resolveSectionIds(raw.substring(MANUAL_INDEX_PREFIX.length()));
+    }
+
+    /** Builds the client-visible page sequence. This list has no vanilla written-book page limit. */
+    public static List<Component> virtualPages(List<TotemManualSection> suppliedSections) {
+        List<TotemManualSection> sections = normalized(suppliedSections);
+        List<Component> pages = new ArrayList<>();
+        pages.add(Component.translatable(COVER_PAGE_KEY, sections.size()));
+        for (int page = 0; page < contentsPageCount(sections.size()); page++) {
+            pages.add(Component.translatable(CONTENTS_PAGE_KEY));
+        }
+        for (TotemManualSection section : sections) {
+            pages.add(Component.translatable(
+                    "book.totem.manual.section",
+                    Component.translatable(section.titleKey())
+            ));
+            section.pageKeys().stream()
+                    .map(section::pageComponent)
+                    .forEach(pages::add);
+        }
+        return List.copyOf(pages);
+    }
+
+    public static int contentsPageCount(int sectionCount) {
+        if (sectionCount < 0) {
+            throw new IllegalArgumentException("sectionCount must not be negative");
+        }
+        return Math.max(1, (sectionCount + CONTENTS_ENTRIES_PER_PAGE - 1)
+                / CONTENTS_ENTRIES_PER_PAGE);
+    }
+
+    /** Returns the zero-based virtual page containing the requested chapter divider. */
+    public static int sectionStartPage(
+            List<TotemManualSection> suppliedSections,
+            int sectionIndex
+    ) {
+        List<TotemManualSection> sections = normalized(suppliedSections);
+        if (sectionIndex < 0 || sectionIndex >= sections.size()) {
+            throw new IndexOutOfBoundsException("Manual section index: " + sectionIndex);
+        }
+        int page = 1 + contentsPageCount(sections.size());
+        for (int index = 0; index < sectionIndex; index++) {
+            page += 1 + sections.get(index).pageKeys().size();
+        }
+        return page;
     }
 
     public static String revision(List<TotemManualSection> suppliedSections) {
@@ -181,37 +228,17 @@ public final class TotemManualAssembler {
         }
     }
 
-    /** Validates section page usage without creating an ItemStack. */
+    /**
+     * Compatibility helper retained under its old name. It now reports logical virtual pages and does
+     * not enforce vanilla's physical WrittenBookContent limit.
+     */
     public static int validatePageLimit(List<TotemManualSection> suppliedSections) {
-        int pageCount = 2 + suppliedSections.stream()
-                .mapToInt(section -> 1 + section.pageKeys().size())
-                .sum();
-        validatePageCount(pageCount);
-        return pageCount;
+        return virtualPages(suppliedSections).size();
     }
 
+    /** Backwards-compatible package-local alias used by older tests. */
     static List<Component> pages(List<TotemManualSection> sections) {
-        List<Component> pages = new ArrayList<>();
-        pages.add(Component.translatable(COVER_PAGE_KEY, sections.size()));
-
-        Component contents = Component.translatable("book.totem.manual.contents");
-        for (TotemManualSection section : sections) {
-            contents = contents.copy()
-                    .append(Component.literal("\n• "))
-                    .append(Component.translatable(section.titleKey()));
-        }
-        pages.add(contents);
-
-        for (TotemManualSection section : sections) {
-            pages.add(Component.translatable(
-                    "book.totem.manual.section",
-                    Component.translatable(section.titleKey())
-            ));
-            section.pageKeys().stream()
-                    .map(section::pageComponent)
-                    .forEach(pages::add);
-        }
-        return List.copyOf(pages);
+        return virtualPages(sections);
     }
 
     private static void update(MessageDigest digest, String value) {
@@ -226,6 +253,18 @@ public final class TotemManualAssembler {
         return List.copyOf(unique.values());
     }
 
+    private static List<TotemManualSection> resolveSectionIds(String ids) {
+        Map<Identifier, TotemManualSection> selected = new LinkedHashMap<>();
+        for (String rawId : ids.split(",")) {
+            Identifier id = Identifier.tryParse(rawId);
+            if (id != null) {
+                TotemManualRegistry.global().section(id)
+                        .ifPresent(section -> selected.put(section.id(), section));
+            }
+        }
+        return selected.values().stream().sorted().toList();
+    }
+
     private static boolean matchesAllRegistered(List<TotemManualSection> sections) {
         return sections.stream().map(TotemManualSection::id).toList()
                 .equals(TotemManualRegistry.global().sections().stream()
@@ -237,14 +276,5 @@ public final class TotemManualAssembler {
                 .map(section -> section.id().toString())
                 .reduce((left, right) -> left + "," + right)
                 .orElse("");
-    }
-
-    private static void validatePageCount(int pageCount) {
-        if (pageCount > MAX_PAGES) {
-            throw new IllegalStateException(
-                    "Totem manual requires " + pageCount
-                            + " pages; vanilla limit is " + MAX_PAGES
-            );
-        }
     }
 }

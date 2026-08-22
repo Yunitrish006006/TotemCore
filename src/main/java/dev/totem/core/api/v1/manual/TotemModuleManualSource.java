@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-/** Registers one independently owned module chapter and its recording block. */
+/** Registers one independently owned chapter and a block that records it into the shared manual. */
 public final class TotemModuleManualSource {
     private TotemModuleManualSource() {
     }
@@ -49,7 +49,7 @@ public final class TotemModuleManualSource {
             if (world.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
-            return TotemManualPlayerHelper.acquireSections(
+            return TotemManualChapterRecorder.acquireSections(
                     (ServerPlayer) player,
                     hand,
                     copy,
