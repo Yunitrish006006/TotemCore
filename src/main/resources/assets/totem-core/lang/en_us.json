@@ -16,6 +16,7 @@
   "message.totem.manual.received": "You recorded a Totem Manual.",
   "message.totem.manual.basic_received": "Your Totem Starter Guide has been added to your inventory.",
   "message.totem.manual.refreshed": "Your Totem Manual was refreshed.",
+  "message.totem.manual.split_disabled": "Totem Manuals now keep all recorded chapters in one book and can no longer be split.",
   "message.totem.manual.split_missing": "Hold the Totem Manual you want to split.",
   "message.totem.manual.split_success": "The Totem Manual was split into %s module guides.",
   "message.totem.manual.split_unavailable": "This guide has only one section and cannot be split further."
