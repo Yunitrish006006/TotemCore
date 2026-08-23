@@ -1,5 +1,6 @@
 name: Publish Modrinth
 
+# Touching this workflow intentionally re-verifies the current release artifact on Modrinth.
 on:
   push:
     branches: [master]
