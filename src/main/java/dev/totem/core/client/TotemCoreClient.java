@@ -6,10 +6,11 @@ import dev.totem.core.network.ServerModuleVersionsPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 
-/** Registers the client half of DeadRecall's pre-join exact-version handshake. */
+/** Registers Core client features and the pre-join exact-version handshake. */
 public final class TotemCoreClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        TotemStarterManualOverlay.register();
         ClientConfigurationNetworking.registerGlobalReceiver(
                 ServerModuleVersionsPayload.TYPE,
                 (payload, context) -> context.responseSender().sendPacket(
