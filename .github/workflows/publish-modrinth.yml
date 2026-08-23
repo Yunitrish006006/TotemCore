@@ -7,6 +7,7 @@ on:
     paths:
       - gradle.properties
       - .github/workflows/publish-modrinth.yml
+      - .github/staging/vanillatweaks-modrinth-request.json
   workflow_dispatch:
     inputs:
       dry_run:
@@ -156,3 +157,173 @@ jobs:
           existing_sha="$(curl --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "$api" | jq -r '.sha // empty')"
           payload="$(jq -n --arg message "release: record Modrinth ${MOD_VERSION}" --arg content "$encoded" --arg branch "$GITHUB_REF_NAME" --arg sha "$existing_sha" 'if $sha == "" then {message:$message,content:$content,branch:$branch} else {message:$message,content:$content,branch:$branch,sha:$sha} end')"
           curl --fail --silent --show-error -X PUT -H "Authorization: Bearer ${GH_TOKEN}" -H 'Accept: application/vnd.github+json' -H 'X-GitHub-Api-Version: 2022-11-28' "$api" -d "$payload" >/dev/null
+
+  vanilla_tweaks_backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out Core control ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve VanillaTweaks request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          request='.github/staging/vanillatweaks-modrinth-request.json'
+          if [[ ! -f "$request" ]]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          version="$(jq -er '.version' "$request")"
+          release_ref="$(jq -er '.release_ref' "$request")"
+          test "$version" = '0.1.14'
+          test "$release_ref" = 'e81b86615583d591580a146f48b77aa57f37f769'
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release_ref=$release_ref" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java 25
+        if: steps.request.outputs.enabled == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        if: steps.request.outputs.enabled == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check out VanillaTweaks 0.1.14
+        if: steps.request.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemVanillaTweaks
+          ref: ${{ steps.request.outputs.release_ref }}
+          path: .bridge/VanillaTweaks
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out TotemCore 0.7.2
+        if: steps.request.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemCore
+          ref: a8cedca207f9d4444ae4a52fd384ebd830fbd026
+          path: .bridge/TotemCore072
+          persist-credentials: false
+
+      - name: Build, publish, and verify VanillaTweaks 0.1.14
+        id: bridge
+        if: steps.request.outputs.enabled == 'true'
+        shell: bash
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CORE_PROJECT_ID: ${{ secrets.MODRINTH_PROJECT_ID }}
+          EXPECTED_VERSION: ${{ steps.request.outputs.version }}
+          RELEASE_REF: ${{ steps.request.outputs.release_ref }}
+        run: |
+          set -euo pipefail
+          test -n "$MODRINTH_TOKEN" || { echo 'Core MODRINTH_TOKEN is missing.' >&2; exit 1; }
+          test -n "$CORE_PROJECT_ID" || { echo 'Core MODRINTH_PROJECT_ID is missing.' >&2; exit 1; }
+
+          core_dir="$GITHUB_WORKSPACE/.bridge/TotemCore072"
+          tweak_dir="$GITHUB_WORKSPACE/.bridge/VanillaTweaks"
+          chmod +x "$core_dir/gradlew" "$tweak_dir/gradlew"
+          test "$(sed -n 's/^mod_version=//p' "$core_dir/gradle.properties")" = '0.7.2'
+          test "$(sed -n 's/^mod_version=//p' "$tweak_dir/gradle.properties")" = "$EXPECTED_VERSION"
+          test "$(git -C "$tweak_dir" rev-parse HEAD)" = "$RELEASE_REF"
+
+          "$core_dir/gradlew" -p "$core_dir" jar --no-daemon --stacktrace
+          core_jar="$core_dir/build/libs/totem-core-0.7.2.jar"
+          test -f "$core_jar"
+          "$tweak_dir/gradlew" -p "$tweak_dir" -PtotemCoreJar="$core_jar" jar --no-daemon --stacktrace
+          artifact="$tweak_dir/build/libs/totem-vanilla-tweaks-${EXPECTED_VERSION}.jar"
+          if [[ ! -f "$artifact" ]]; then
+            "$tweak_dir/gradlew" -p "$tweak_dir" -PtotemCoreJar="$core_jar" remapJar --no-daemon --stacktrace
+          fi
+          test -f "$artifact"
+
+          unzip -p "$artifact" fabric.mod.json >/tmp/vanilla-tweaks-fabric.mod.json
+          jq -e --arg v "$EXPECTED_VERSION" '.id=="totem-vanilla-tweaks" and .version==$v and .depends.minecraft=="~26.2" and .depends["totem-core"]==">=0.7.0 <0.8.0"' /tmp/vanilla-tweaks-fabric.mod.json >/dev/null
+          sha512="$(sha512sum "$artifact" | awk '{print $1}')"
+
+          api='https://api.modrinth.com/v2'
+          args=(--fail --silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/1.0')
+
+          project_json=''
+          for candidate in totem-vanilla-tweaks totemvanillatweaks; do
+            if curl "${args[@]}" "$api/project/$candidate" >/tmp/candidate.json 2>/dev/null; then
+              project_json=/tmp/candidate.json
+              break
+            fi
+          done
+
+          if [[ -z "$project_json" ]]; then
+            curl "${args[@]}" "$api/project/${CORE_PROJECT_ID}/members" >/tmp/core-members.json
+            username="$(jq -er '([.[] | select(((.role // "") | ascii_downcase) == "owner")][0].user.username) // .[0].user.username' /tmp/core-members.json)"
+            curl "${args[@]}" "$api/user/${username}/projects" >/tmp/user-projects.json
+            jq '[.[] | select(
+              (((.source_url // "") | ascii_downcase) | contains("github.com/yunitrish006006/totemvanillatweaks")) or
+              (((.title // "") | ascii_downcase) == "totem vanilla tweaks") or
+              (((.title // "") | ascii_downcase) == "totemvanillatweaks") or
+              (((.slug // "") | ascii_downcase) == "totem-vanilla-tweaks") or
+              (((.slug // "") | ascii_downcase) == "totemvanillatweaks")
+            )]' /tmp/user-projects.json >/tmp/matches.json
+            test "$(jq 'length' /tmp/matches.json)" = '1' || { echo 'Could not uniquely resolve the VanillaTweaks Modrinth project.' >&2; exit 1; }
+            jq '.[0]' /tmp/matches.json >/tmp/candidate.json
+            project_json=/tmp/candidate.json
+          fi
+
+          project_id="$(jq -er '.id' "$project_json")"
+          project_slug="$(jq -r '.slug // ""' "$project_json")"
+          project_title="$(jq -er '.title' "$project_json")"
+          project_status="$(jq -er '.status' "$project_json")"
+          echo "Resolved Modrinth project ${project_title} (${project_id}, status=${project_status})."
+
+          curl "${args[@]}" "$api/project/${project_id}/version?include_changelog=false" >/tmp/versions.json
+          count="$(jq --arg v "$EXPECTED_VERSION" '[.[] | select(.version_number==$v)] | length' /tmp/versions.json)"
+          if [[ "$count" == '0' ]]; then
+            changelog='Finite skeleton ammunition now uses vanilla local-difficulty bonus chances with reduced arrow counts.'
+            data="$(jq -nc --arg n "totem-vanilla-tweaks ${EXPECTED_VERSION}" --arg v "$EXPECTED_VERSION" --arg c "$changelog" --arg p "$project_id" '{name:$n,version_number:$v,changelog:$c,dependencies:[],game_versions:["26.2"],version_type:"release",loaders:["fabric"],featured:false,status:"listed",project_id:$p,file_parts:["primary"],primary_file:"primary",environment:"client_and_server"}')"
+            curl "${args[@]}" -X POST "$api/version" -F "data=${data};type=application/json" -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive" >/tmp/version.json
+            version_id="$(jq -er '.id' /tmp/version.json)"
+          else
+            test "$count" = '1'
+            version_id="$(jq -er --arg v "$EXPECTED_VERSION" '.[] | select(.version_number==$v) | .id' /tmp/versions.json)"
+            remote_sha="$(jq -er --arg v "$EXPECTED_VERSION" '.[] | select(.version_number==$v) | (([.files[] | select(.primary==true)][0] // .files[0]).hashes.sha512)' /tmp/versions.json)"
+            test "$remote_sha" = "$sha512" || { echo 'Existing 0.1.14 has a different SHA-512; refusing to overwrite.' >&2; exit 1; }
+          fi
+
+          curl "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
+          jq -e --arg p "$project_id" --arg v "$EXPECTED_VERSION" --arg f "$(basename "$artifact")" --arg sha "$sha512" '.project_id==$p and .version_number==$v and .game_versions==["26.2"] and .loaders==["fabric"] and (([.files[]|select(.primary==true)][0]//.files[0]).filename==$f) and (([.files[]|select(.primary==true)][0]//.files[0]).hashes.sha512==$sha)' /tmp/remote.json >/dev/null
+
+          echo "project_id=$project_id" >> "$GITHUB_OUTPUT"
+          echo "project_slug=$project_slug" >> "$GITHUB_OUTPUT"
+          echo "project_status=$project_status" >> "$GITHUB_OUTPUT"
+          echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
+          echo "sha512=$sha512" >> "$GITHUB_OUTPUT"
+
+      - name: Record VanillaTweaks bridge result
+        if: steps.request.outputs.enabled == 'true' && steps.bridge.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.request.outputs.version }}
+          RELEASE_REF: ${{ steps.request.outputs.release_ref }}
+          PROJECT_ID: ${{ steps.bridge.outputs.project_id }}
+          PROJECT_SLUG: ${{ steps.bridge.outputs.project_slug }}
+          PROJECT_STATUS: ${{ steps.bridge.outputs.project_status }}
+          VERSION_ID: ${{ steps.bridge.outputs.version_id }}
+          SHA512: ${{ steps.bridge.outputs.sha512 }}
+        run: |
+          set -euo pipefail
+          marker='.github/staging/vanillatweaks-modrinth-result.json'
+          content="$(jq -n --arg version "$VERSION" --arg ref "$RELEASE_REF" --arg project "$PROJECT_ID" --arg slug "$PROJECT_SLUG" --arg status "$PROJECT_STATUS" --arg id "$VERSION_ID" --arg sha "$SHA512" --arg run "$GITHUB_RUN_ID" '{version:$version,release_ref:$ref,project_id:$project,project_slug:$slug,project_status:$status,modrinth_version_id:$id,sha512:$sha,verified_by_run:$run}')"
+          encoded="$(printf '%s\n' "$content" | base64 -w0)"
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/${marker}"
+          old="$(curl --silent --show-error -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "$api" | jq -r '.sha // empty')"
+          payload="$(jq -n --arg message 'release: record VanillaTweaks Modrinth 0.1.14 bridge result' --arg content "$encoded" --arg branch master --arg sha "$old" 'if $sha=="" then {message:$message,content:$content,branch:$branch} else {message:$message,content:$content,branch:$branch,sha:$sha} end')"
+          curl --fail --silent --show-error -X PUT -H "Authorization: Bearer ${GH_TOKEN}" -H 'X-GitHub-Api-Version: 2022-11-28' "$api" -d "$payload" >/dev/null
