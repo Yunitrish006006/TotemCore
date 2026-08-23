@@ -29,19 +29,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Gives canonical Totem manuals an unlimited virtual two-page book with a clickable contents index. */
+/** Gives canonical Totem manuals an unlimited adaptive two-page book with a clickable contents index. */
 @Mixin(BookViewScreen.class)
 abstract class BookViewScreenMixin extends Screen {
     @Unique private static final Identifier totem$LEFT_PAGE_BACKGROUND =
             Identifier.fromNamespaceAndPath("totem-core", "textures/gui/manual_left_page.png");
-    @Unique private static final int totem$PAGE_WIDTH = 192;
-    @Unique private static final int totem$PAGE_HEIGHT = 192;
-    @Unique private static final int totem$PAGE_STRIDE = 146;
-    @Unique private static final int totem$SPREAD_WIDTH = totem$PAGE_WIDTH + totem$PAGE_STRIDE;
-    @Unique private static final int totem$PAGE_TOP = 2;
-    @Unique private static final int totem$TEXT_WIDTH = 114;
-    @Unique private static final int totem$TEXT_HEIGHT = 128;
+
+    @Unique private static final int totem$COMPACT_PAGE_WIDTH = 192;
+    @Unique private static final int totem$COMPACT_PAGE_HEIGHT = 192;
+    @Unique private static final int totem$COMPACT_PAGE_STRIDE = 146;
+    @Unique private static final int totem$COMPACT_TEXT_WIDTH = 114;
+    @Unique private static final int totem$COMPACT_TEXT_HEIGHT = 128;
+
+    @Unique private static final int totem$ROOMY_PAGE_WIDTH = 224;
+    @Unique private static final int totem$ROOMY_PAGE_HEIGHT = 224;
+    @Unique private static final int totem$ROOMY_PAGE_STRIDE = 170;
+    @Unique private static final int totem$ROOMY_TEXT_WIDTH = 146;
+    @Unique private static final int totem$ROOMY_TEXT_HEIGHT = 160;
+
+    @Unique private static final int totem$PAGE_SOURCE_WIDTH = 192;
+    @Unique private static final int totem$PAGE_SOURCE_HEIGHT = 192;
+    @Unique private static final int totem$MIN_SCREEN_MARGIN = 12;
+    @Unique private static final int totem$TEXT_LEFT = 36;
+    @Unique private static final int totem$TEXT_TOP = 30;
     @Unique private static final int totem$CONTENTS_TOP = 50;
+    @Unique private static final int totem$PAGE_NUMBER_RIGHT_MARGIN = 44;
     @Unique private static final Style totem$PAGE_TEXT_STYLE =
             Style.EMPTY.withoutShadow().withColor(0x000000);
 
@@ -65,15 +77,23 @@ abstract class BookViewScreenMixin extends Screen {
         }
         totem$ensureVirtualPages();
         int spreadLeft = totem$spreadLeft();
+        int pageTop = totem$pageTop();
+        int pageHeight = totem$pageHeight();
+        int navigationY = pageTop + pageHeight - 35;
+
         backButton.setX(spreadLeft + 43);
-        forwardButton.setX(spreadLeft + totem$PAGE_STRIDE + 116);
+        backButton.setY(navigationY);
+        forwardButton.setX(spreadLeft + totem$pageStride() + totem$pageWidth() - 76);
+        forwardButton.setY(navigationY);
+
+        int contentsX = spreadLeft >= 62 ? spreadLeft - 58 : spreadLeft + 34;
         addRenderableWidget(Button.builder(
                         Component.translatable("button.totem.manual.contents"),
                         button -> {
                             currentPage = 0;
                             totem$updateButtonVisibility();
                         })
-                .bounds(Math.max(4, spreadLeft - 58), totem$PAGE_TOP + 8, 54, 20)
+                .bounds(contentsX, pageTop + 8, 54, 20)
                 .build());
         totem$updateButtonVisibility();
     }
@@ -134,7 +154,7 @@ abstract class BookViewScreenMixin extends Screen {
         );
         if (sectionIndex < 0 && currentPage + 1 < totem$pageCount()) {
             sectionIndex = totem$contentsEntryAt(
-                    event.x(), event.y(), currentPage + 1, spreadLeft + totem$PAGE_STRIDE
+                    event.x(), event.y(), currentPage + 1, spreadLeft + totem$pageStride()
             );
         }
         if (sectionIndex < 0) {
@@ -159,12 +179,19 @@ abstract class BookViewScreenMixin extends Screen {
         }
         super.extractBackground(graphics, mouseX, mouseY, partialTick);
         int spreadLeft = totem$spreadLeft();
+        int pageTop = totem$pageTop();
+        int pageWidth = totem$pageWidth();
+        int pageHeight = totem$pageHeight();
         graphics.blit(RenderPipelines.GUI_TEXTURED, totem$LEFT_PAGE_BACKGROUND,
-                spreadLeft, totem$PAGE_TOP, 0.0F, 0.0F,
-                totem$PAGE_WIDTH, totem$PAGE_HEIGHT, 256, 256);
+                spreadLeft, pageTop, 0.0F, 0.0F,
+                pageWidth, pageHeight,
+                totem$PAGE_SOURCE_WIDTH, totem$PAGE_SOURCE_HEIGHT,
+                256, 256);
         graphics.blit(RenderPipelines.GUI_TEXTURED, BookViewScreen.BOOK_LOCATION,
-                spreadLeft + totem$PAGE_STRIDE, totem$PAGE_TOP, 0.0F, 0.0F,
-                totem$PAGE_WIDTH, totem$PAGE_HEIGHT, 256, 256);
+                spreadLeft + totem$pageStride(), pageTop, 0.0F, 0.0F,
+                pageWidth, pageHeight,
+                totem$PAGE_SOURCE_WIDTH, totem$PAGE_SOURCE_HEIGHT,
+                256, 256);
         callback.cancel();
     }
 
@@ -185,7 +212,7 @@ abstract class BookViewScreenMixin extends Screen {
         totem$renderPage(graphics, currentPage, spreadLeft, mouseX, mouseY);
         int rightPage = currentPage + 1;
         if (rightPage < totem$pageCount()) {
-            totem$renderPage(graphics, rightPage, spreadLeft + totem$PAGE_STRIDE, mouseX, mouseY);
+            totem$renderPage(graphics, rightPage, spreadLeft + totem$pageStride(), mouseX, mouseY);
         }
         callback.cancel();
     }
@@ -198,13 +225,15 @@ abstract class BookViewScreenMixin extends Screen {
             int mouseX,
             int mouseY
     ) {
+        int pageTop = totem$pageTop();
         Component pageNumber = Component.translatable(
                 "book.pageIndicator",
                 pageIndex + 1,
                 Math.max(1, totem$pageCount())
         ).withStyle(totem$PAGE_TEXT_STYLE);
         graphics.text(font, pageNumber,
-                pageLeft + 148 - font.width(pageNumber), totem$PAGE_TOP + 16, 0xFF000000, false);
+                pageLeft + totem$pageWidth() - totem$PAGE_NUMBER_RIGHT_MARGIN - font.width(pageNumber),
+                pageTop + 16, 0xFF000000, false);
 
         if (totem$isContentsPage(pageIndex)) {
             totem$renderContentsPage(graphics, pageIndex, pageLeft, mouseX, mouseY);
@@ -212,11 +241,11 @@ abstract class BookViewScreenMixin extends Screen {
         }
 
         Component page = ComponentUtils.mergeStyles(totem$page(pageIndex), totem$PAGE_TEXT_STYLE);
-        List<FormattedCharSequence> lines = font.split(page, totem$TEXT_WIDTH);
-        int lineCount = Math.min(totem$TEXT_HEIGHT / font.lineHeight, lines.size());
+        List<FormattedCharSequence> lines = font.split(page, totem$textWidth());
+        int lineCount = Math.min(totem$textHeight() / font.lineHeight, lines.size());
         for (int line = 0; line < lineCount; line++) {
             graphics.text(font, lines.get(line),
-                    pageLeft + 36, totem$PAGE_TOP + 30 + line * font.lineHeight,
+                    pageLeft + totem$TEXT_LEFT, pageTop + totem$TEXT_TOP + line * font.lineHeight,
                     0xFF000000, false);
         }
 
@@ -225,7 +254,7 @@ abstract class BookViewScreenMixin extends Screen {
                 font,
                 totem$pageKey(pageIndex),
                 pageLeft,
-                totem$PAGE_TOP,
+                pageTop,
                 mouseX,
                 mouseY
         ));
@@ -239,15 +268,17 @@ abstract class BookViewScreenMixin extends Screen {
             int mouseX,
             int mouseY
     ) {
+        int pageTop = totem$pageTop();
         int contentsIndex = pageIndex - 1;
         int contentsPages = TotemManualAssembler.contentsPageCount(totem$manualSections.size());
+        int centerX = pageLeft + totem$pageWidth() / 2 - 3;
         graphics.centeredText(font,
                 Component.translatable(TotemManualAssembler.CONTENTS_PAGE_KEY),
-                pageLeft + 93, totem$PAGE_TOP + 31, 0xFF000000);
+                centerX, pageTop + 31, 0xFF000000);
         if (contentsPages > 1) {
             graphics.centeredText(font,
                     Component.literal((contentsIndex + 1) + "/" + contentsPages),
-                    pageLeft + 93, totem$PAGE_TOP + 40, 0xFF6F5637);
+                    centerX, pageTop + 40, 0xFF6F5637);
         }
 
         int firstSection = contentsIndex * TotemManualAssembler.CONTENTS_ENTRIES_PER_PAGE;
@@ -257,17 +288,17 @@ abstract class BookViewScreenMixin extends Screen {
             if (sectionIndex >= totem$manualSections.size()) {
                 break;
             }
-            int y = totem$PAGE_TOP + totem$CONTENTS_TOP + row * rowHeight;
-            boolean hovered = mouseX >= pageLeft + 34 && mouseX < pageLeft + 38 + totem$TEXT_WIDTH
+            int y = pageTop + totem$CONTENTS_TOP + row * rowHeight;
+            boolean hovered = mouseX >= pageLeft + 34 && mouseX < pageLeft + 38 + totem$textWidth()
                     && mouseY >= y && mouseY < y + rowHeight;
             TotemManualSection section = totem$manualSections.get(sectionIndex);
             int targetPage = TotemManualAssembler.sectionStartPage(totem$manualSections, sectionIndex);
             Component label = Component.literal("• ")
                     .append(Component.translatable(section.titleKey()))
                     .append(Component.literal("  " + (targetPage + 1)));
-            List<FormattedCharSequence> fitted = font.split(label, totem$TEXT_WIDTH);
+            List<FormattedCharSequence> fitted = font.split(label, totem$textWidth());
             if (!fitted.isEmpty()) {
-                graphics.text(font, fitted.getFirst(), pageLeft + 36, y,
+                graphics.text(font, fitted.getFirst(), pageLeft + totem$TEXT_LEFT, y,
                         hovered ? 0xFF285F91 : 0xFF000000, false);
             }
         }
@@ -284,8 +315,8 @@ abstract class BookViewScreenMixin extends Screen {
             return -1;
         }
         int rowHeight = font.lineHeight + 2;
-        double top = totem$PAGE_TOP + totem$CONTENTS_TOP;
-        if (mouseX < pageLeft + 34 || mouseX >= pageLeft + 38 + totem$TEXT_WIDTH
+        double top = totem$pageTop() + totem$CONTENTS_TOP;
+        if (mouseX < pageLeft + 34 || mouseX >= pageLeft + 38 + totem$textWidth()
                 || mouseY < top || mouseY >= top + rowHeight * TotemManualAssembler.CONTENTS_ENTRIES_PER_PAGE) {
             return -1;
         }
@@ -384,7 +415,54 @@ abstract class BookViewScreenMixin extends Screen {
     }
 
     @Unique
+    private float totem$layoutExpansion() {
+        int compactSpread = totem$COMPACT_PAGE_WIDTH + totem$COMPACT_PAGE_STRIDE;
+        int roomySpread = totem$ROOMY_PAGE_WIDTH + totem$ROOMY_PAGE_STRIDE;
+        float widthRoom = (width - totem$MIN_SCREEN_MARGIN - compactSpread)
+                / (float) (roomySpread - compactSpread);
+        float heightRoom = (height - totem$MIN_SCREEN_MARGIN - totem$COMPACT_PAGE_HEIGHT)
+                / (float) (totem$ROOMY_PAGE_HEIGHT - totem$COMPACT_PAGE_HEIGHT);
+        return Mth.clamp(Math.min(widthRoom, heightRoom), 0.0F, 1.0F);
+    }
+
+    @Unique
+    private int totem$layoutValue(int compact, int roomy) {
+        return compact + Math.round((roomy - compact) * totem$layoutExpansion());
+    }
+
+    @Unique
+    private int totem$pageWidth() {
+        return totem$layoutValue(totem$COMPACT_PAGE_WIDTH, totem$ROOMY_PAGE_WIDTH);
+    }
+
+    @Unique
+    private int totem$pageHeight() {
+        return totem$layoutValue(totem$COMPACT_PAGE_HEIGHT, totem$ROOMY_PAGE_HEIGHT);
+    }
+
+    @Unique
+    private int totem$pageStride() {
+        return totem$layoutValue(totem$COMPACT_PAGE_STRIDE, totem$ROOMY_PAGE_STRIDE);
+    }
+
+    @Unique
+    private int totem$textWidth() {
+        return totem$layoutValue(totem$COMPACT_TEXT_WIDTH, totem$ROOMY_TEXT_WIDTH);
+    }
+
+    @Unique
+    private int totem$textHeight() {
+        return totem$layoutValue(totem$COMPACT_TEXT_HEIGHT, totem$ROOMY_TEXT_HEIGHT);
+    }
+
+    @Unique
+    private int totem$pageTop() {
+        return Math.max(2, (height - totem$pageHeight()) / 2);
+    }
+
+    @Unique
     private int totem$spreadLeft() {
-        return (width - totem$SPREAD_WIDTH) / 2;
+        int spreadWidth = totem$pageWidth() + totem$pageStride();
+        return (width - spreadWidth) / 2;
     }
 }
