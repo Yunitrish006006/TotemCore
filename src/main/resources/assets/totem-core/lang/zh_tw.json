@@ -5,7 +5,7 @@
   "book.totem.manual.getting_started.title": "Totem 基礎手冊",
   "book.totem.manual.getting_started.page.1": "開始使用\n\n第一次加入世界時，TotemCore 會直接給你這本基礎手冊。其他 Totem 模組不會另外給第二本手冊；取得的章節都會記錄到這一本。",
   "book.totem.manual.getting_started.page.2": "章節來源 1/2\n\n手持 Totem 手冊或普通書本，對來源方塊按右鍵：\n\nAlchemy：釀造台、鍋／水鍋、煉藥鍋\nRemnant：鍛造台\nAutomata：任一銅箱\nEnchanting：附魔台",
-  "book.totem.manual.getting_started.page.3": "章節來源 2/2\n\nExcavation：工作台\nLocksmith：箱子、陷阱箱、木桶\nVanilla Tweaks：講台\nVillagers：堆肥桶\n\nNexus 不使用方塊取得章節。",
+  "book.totem.manual.getting_started.page.3": "章節來源 2/2\n\nNexus：磁石\nExcavation：工作台\nLocksmith：箱子、陷阱箱、木桶\nVanilla Tweaks：講台\nVillagers：堆肥桶",
   "book.totem.manual.getting_started.page.4": "沒有手冊時\n\n普通書本也可以直接對前面列出的來源方塊使用。Core 會建立 Totem 手冊、先加入基礎章節，再把對應模組章節記錄進去。",
   "book.totem.manual.getting_started.page.5": "閱讀與更新\n\n所有已取得章節都留在同一本手冊；按「目錄」可快速跳轉。安裝新模組或內容更新後，已記錄的章節會由 Core 刷新，不需要拆成多本手冊。",
   "disconnect.totem_core.version_handshake_required": "DeadRecall 要求 Client 與 Server 使用完全相同的模組版本。",

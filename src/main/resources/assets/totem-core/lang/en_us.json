@@ -5,7 +5,7 @@
   "book.totem.manual.getting_started.title": "Totem Starter Guide",
   "book.totem.manual.getting_started.page.1": "GETTING STARTED\n\nTotemCore gives you this starter guide the first time you join. Other Totem modules do not create separate manuals; acquired chapters are recorded into this same book.",
   "book.totem.manual.getting_started.page.2": "CHAPTER SOURCES 1/2\n\nHold a Totem Manual or plain book and use the source block:\n\nAlchemy: Brewing Stand, Cauldron / Water Cauldron, Alchemy Cauldron\nRemnant: Smithing Table\nAutomata: any Copper Chest\nEnchanting: Enchanting Table",
-  "book.totem.manual.getting_started.page.3": "CHAPTER SOURCES 2/2\n\nExcavation: Crafting Table\nLocksmith: Chest, Trapped Chest, Barrel\nVanilla Tweaks: Lectern\nVillagers: Composter\n\nNexus does not use a block chapter source.",
+  "book.totem.manual.getting_started.page.3": "CHAPTER SOURCES 2/2\n\nNexus: Lodestone\nExcavation: Crafting Table\nLocksmith: Chest, Trapped Chest, Barrel\nVanilla Tweaks: Lectern\nVillagers: Composter",
   "book.totem.manual.getting_started.page.4": "NO MANUAL YET\n\nA plain book also works on any source block listed above. Core creates the Totem Manual, records the starter chapter first, then adds that module's chapter.",
   "book.totem.manual.getting_started.page.5": "READING & UPDATES\n\nAll acquired chapters stay in one manual; use Contents to jump between them. Core refreshes recorded chapters after module or content updates, so the manual never needs to be split.",
   "disconnect.totem_core.version_handshake_required": "DeadRecall requires the same module versions on the client and server.",
