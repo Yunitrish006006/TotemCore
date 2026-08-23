@@ -1,6 +1,7 @@
 package dev.totem.core;
 
 import dev.totem.core.api.v1.manual.TotemManualAssembler;
+import dev.totem.core.api.v1.manual.TotemManualPageFilterRegistry;
 import dev.totem.core.api.v1.manual.TotemManualRegistry;
 import dev.totem.core.api.v1.manual.TotemManualSection;
 import net.minecraft.resources.Identifier;
@@ -81,6 +82,36 @@ class TotemManualRegistryTest {
         assertEquals(2, TotemManualAssembler.contentsPageCount(sections.size()));
         assertEquals(3, TotemManualAssembler.sectionStartPage(sections, 0));
         assertEquals(23, TotemManualAssembler.sectionStartPage(sections, 10));
+    }
+
+    @Test
+    void processLocalFiltersHideVirtualPagesWithoutChangingCanonicalRegistration() {
+        Identifier filterId = Identifier.parse("totem:test_discovery_visibility");
+        TotemManualSection research = new TotemManualSection(
+                Identifier.parse("totem:research"),
+                0,
+                "book.test.research",
+                List.of(
+                        "book.test.research.intro",
+                        "book.test.research.discovery.0",
+                        "book.test.research.discovery.1",
+                        "book.test.research.recipe"
+                )
+        );
+        TotemManualSection next = section("totem:next", 10, "book.test.next");
+
+        TotemManualPageFilterRegistry.register(
+                filterId,
+                pageKey -> !pageKey.equals("book.test.research.discovery.1")
+        );
+        try {
+            assertEquals(4, research.canonicalPageKeys().size());
+            assertEquals(3, research.pageKeys().size());
+            assertEquals(6, TotemManualAssembler.virtualPages(List.of(research)).size());
+            assertEquals(6, TotemManualAssembler.sectionStartPage(List.of(research, next), 1));
+        } finally {
+            TotemManualPageFilterRegistry.unregister(filterId);
+        }
     }
 
     @Test

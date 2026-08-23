@@ -13,7 +13,7 @@ import java.util.Objects;
  * @param id globally unique section identifier
  * @param order primary deterministic sort order
  * @param titleKey translation key used in the contents and section divider
- * @param pageKeys translation keys for the section body pages
+ * @param pageKeys canonical translation keys for the section body pages
  * @param pageArguments optional translatable component arguments by page key
  */
 public record TotemManualSection(
@@ -58,6 +58,21 @@ public record TotemManualSection(
                         entry -> List.copyOf(entry.getValue())
                 )
         );
+    }
+
+    /**
+     * Returns the pages currently visible in this process. With no registered filters this is the
+     * complete canonical page list; client feature modules can hide discovery-gated pages locally.
+     */
+    public List<String> pageKeys() {
+        return pageKeys.stream()
+                .filter(TotemManualPageFilterRegistry::isVisible)
+                .toList();
+    }
+
+    /** Returns the complete registered page list without applying process-local visibility filters. */
+    public List<String> canonicalPageKeys() {
+        return pageKeys;
     }
 
     /** Creates a page whose item-name arguments remain translatable at render time. */
