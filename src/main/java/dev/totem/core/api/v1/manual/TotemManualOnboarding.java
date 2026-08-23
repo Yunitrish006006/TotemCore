@@ -5,7 +5,7 @@ import net.minecraft.resources.Identifier;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Core-owned first-join chapter and lifecycle registration. */
+/** Core-owned first-join chapter and canonical chapter-source index. */
 public final class TotemManualOnboarding {
     public static final Identifier SECTION_ID =
             Identifier.fromNamespaceAndPath("totem", "getting_started");
@@ -16,7 +16,9 @@ public final class TotemManualOnboarding {
             List.of(
                     "book.totem.manual.getting_started.page.1",
                     "book.totem.manual.getting_started.page.2",
-                    "book.totem.manual.getting_started.page.3"
+                    "book.totem.manual.getting_started.page.3",
+                    "book.totem.manual.getting_started.page.4",
+                    "book.totem.manual.getting_started.page.5"
             )
     );
 
