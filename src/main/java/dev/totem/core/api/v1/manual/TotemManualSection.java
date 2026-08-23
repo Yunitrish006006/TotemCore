@@ -64,7 +64,6 @@ public record TotemManualSection(
      * Returns the pages currently visible in this process. With no registered filters this is the
      * complete canonical page list; client feature modules can hide discovery-gated pages locally.
      */
-    @Override
     public List<String> pageKeys() {
         return pageKeys.stream()
                 .filter(TotemManualPageFilterRegistry::isVisible)
