@@ -14,6 +14,9 @@ final class TotemStarterManualOverlay {
     private static final String PAGE_3 = "book.totem.manual.getting_started.page.3";
     private static final int INK = 0xFF4B3826;
     private static final int MUTED = 0xFF765B3D;
+    private static final int LABEL_X = 36;
+    private static final int ICON_RIGHT_X = 142;
+    private static final int ICON_SPACING = 20;
 
     private TotemStarterManualOverlay() {
     }
@@ -34,30 +37,30 @@ final class TotemStarterManualOverlay {
     }
 
     private static void renderFirstSourcePage(TotemManualPageRenderContext context) {
-        int y = context.pageTop() + 44;
+        int y = context.pageTop() + 76;
         row(context, "Alchemy", y,
                 Items.BREWING_STAND,
                 Items.CAULDRON,
                 item("totem:alchemy_cauldron"));
-        row(context, "Remnant", y + 28, Items.SMITHING_TABLE);
-        row(context, "Automata", y + 56, item("minecraft:copper_chest"));
-        row(context, "Enchanting", y + 84, Items.ENCHANTING_TABLE);
+        row(context, "Remnant", y + 22, Items.SMITHING_TABLE);
+        row(context, "Automata", y + 44, item("minecraft:copper_chest"));
+        row(context, "Enchanting", y + 66, Items.ENCHANTING_TABLE);
     }
 
     private static void renderSecondSourcePage(TotemManualPageRenderContext context) {
-        int y = context.pageTop() + 38;
+        int y = context.pageTop() + 66;
         row(context, "Nexus", y, Items.LODESTONE);
-        row(context, "Excavation", y + 25, Items.CRAFTING_TABLE);
-        row(context, "Locksmith", y + 50,
+        row(context, "Excavation", y + 19, Items.CRAFTING_TABLE);
+        row(context, "Locksmith", y + 38,
                 Items.CHEST,
                 Items.TRAPPED_CHEST,
                 Items.BARREL);
-        row(context, "Vanilla Tweaks", y + 75, Items.LECTERN);
-        row(context, "Villagers", y + 100, Items.COMPOSTER);
+        row(context, "Vanilla Tweaks", y + 57, Items.LECTERN);
+        row(context, "Villagers", y + 76, Items.COMPOSTER);
     }
 
     private static void row(TotemManualPageRenderContext context, String label, int y, Item... items) {
-        int labelX = context.pageLeft() + 28;
+        int labelX = context.pageLeft() + LABEL_X;
         context.graphics().text(context.font(), label, labelX, y + 4, INK, false);
 
         int valid = 0;
@@ -67,18 +70,17 @@ final class TotemStarterManualOverlay {
             }
         }
         if (valid == 0) {
-            context.graphics().text(context.font(), "?", context.pageLeft() + 145, y + 4, MUTED, false);
+            context.graphics().text(context.font(), "?", context.pageLeft() + ICON_RIGHT_X, y + 4, MUTED, false);
             return;
         }
 
-        int spacing = 22;
-        int startX = context.pageLeft() + 156 - (valid - 1) * spacing;
+        int startX = context.pageLeft() + ICON_RIGHT_X - (valid - 1) * ICON_SPACING;
         int index = 0;
         for (Item item : items) {
             if (item == null || item == Items.AIR) {
                 continue;
             }
-            int x = startX + index * spacing;
+            int x = startX + index * ICON_SPACING;
             stack(context, new ItemStack(item), x, y);
             index++;
         }
