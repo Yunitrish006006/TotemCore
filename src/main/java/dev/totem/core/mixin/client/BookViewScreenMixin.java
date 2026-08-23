@@ -54,6 +54,11 @@ abstract class BookViewScreenMixin extends Screen {
     @Unique private static final int totem$TEXT_TOP = 30;
     @Unique private static final int totem$CONTENTS_TOP = 50;
     @Unique private static final int totem$PAGE_NUMBER_RIGHT_MARGIN = 44;
+    @Unique private static final int totem$MENU_BUTTON_WIDTH = 200;
+    @Unique private static final int totem$MENU_BUTTON_HEIGHT = 20;
+    @Unique private static final int totem$MENU_BUTTON_GAP = 6;
+    @Unique private static final int totem$CONTROL_STRIP_HEIGHT =
+            totem$MENU_BUTTON_GAP + totem$MENU_BUTTON_HEIGHT;
     @Unique private static final Style totem$PAGE_TEXT_STYLE =
             Style.EMPTY.withoutShadow().withColor(0x000000);
 
@@ -68,6 +73,20 @@ abstract class BookViewScreenMixin extends Screen {
 
     protected BookViewScreenMixin(Component title) {
         super(title);
+    }
+
+    @Inject(method = "createMenuControls", at = @At("HEAD"), cancellable = true)
+    private void totem$createAdaptiveMenuControls(CallbackInfo callback) {
+        if (!totem$isManual()) {
+            return;
+        }
+        addRenderableWidget(Button.builder(
+                        Component.translatable("gui.done"),
+                        button -> onClose())
+                .bounds(totem$doneButtonX(), totem$doneButtonY(),
+                        totem$MENU_BUTTON_WIDTH, totem$MENU_BUTTON_HEIGHT)
+                .build());
+        callback.cancel();
     }
 
     @Inject(method = "createPageControlButtons", at = @At("TAIL"))
@@ -420,7 +439,8 @@ abstract class BookViewScreenMixin extends Screen {
         int roomySpread = totem$ROOMY_PAGE_WIDTH + totem$ROOMY_PAGE_STRIDE;
         float widthRoom = (width - totem$MIN_SCREEN_MARGIN - compactSpread)
                 / (float) (roomySpread - compactSpread);
-        float heightRoom = (height - totem$MIN_SCREEN_MARGIN - totem$COMPACT_PAGE_HEIGHT)
+        float heightRoom = (height - totem$MIN_SCREEN_MARGIN - totem$CONTROL_STRIP_HEIGHT
+                - totem$COMPACT_PAGE_HEIGHT)
                 / (float) (totem$ROOMY_PAGE_HEIGHT - totem$COMPACT_PAGE_HEIGHT);
         return Mth.clamp(Math.min(widthRoom, heightRoom), 0.0F, 1.0F);
     }
@@ -457,7 +477,18 @@ abstract class BookViewScreenMixin extends Screen {
 
     @Unique
     private int totem$pageTop() {
-        return Math.max(2, (height - totem$pageHeight()) / 2);
+        int occupiedHeight = totem$pageHeight() + totem$CONTROL_STRIP_HEIGHT;
+        return Math.max(2, (height - occupiedHeight) / 2);
+    }
+
+    @Unique
+    private int totem$doneButtonX() {
+        return (width - totem$MENU_BUTTON_WIDTH) / 2;
+    }
+
+    @Unique
+    private int totem$doneButtonY() {
+        return totem$pageTop() + totem$pageHeight() + totem$MENU_BUTTON_GAP;
     }
 
     @Unique
