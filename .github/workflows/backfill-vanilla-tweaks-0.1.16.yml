@@ -92,8 +92,9 @@ jobs:
           api=https://api.modrinth.com/v2
           args=(--silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/3.0')
 
-          curl --fail "${args[@]}" "$api/version/GnIKknfN" >/tmp/vanilla-old.json
-          project_id="$(jq -er '.project_id' /tmp/vanilla-old.json)"
+          project_id=mEcpkZT2
+          curl --fail "${args[@]}" "$api/project/${project_id}" >/tmp/vanilla-project.json
+          test "$(jq -er '.id' /tmp/vanilla-project.json)" = "$project_id"
           curl --fail "${args[@]}" "$api/version/iOzAgHtL" >/tmp/core-version.json
           core_project="$(jq -er '.project_id' /tmp/core-version.json)"
           fabric_project=P7dR8mSH
