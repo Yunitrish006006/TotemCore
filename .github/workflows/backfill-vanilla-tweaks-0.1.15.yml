@@ -28,7 +28,7 @@ jobs:
           version="$(jq -er '.version' "$request")"
           release_ref="$(jq -er '.release_ref' "$request")"
           release_type="$(jq -er '.release_type' "$request")"
-          dry_run="$(jq -r '.dry_run // true' "$request")"
+          dry_run="$(jq -r 'if has("dry_run") then .dry_run else true end' "$request")"
           test "$version" = 0.1.15
           test "$release_ref" = d5bef305ca2961d691156c9023c5f4237d256546
           test "$release_type" = beta
@@ -37,6 +37,7 @@ jobs:
           echo "release_ref=$release_ref" >> "$GITHUB_OUTPUT"
           echo "release_type=$release_type" >> "$GITHUB_OUTPUT"
           echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+          echo "REQUEST_MODE dry_run=$dry_run release_type=$release_type"
 
       - uses: actions/setup-java@v5
         with:
