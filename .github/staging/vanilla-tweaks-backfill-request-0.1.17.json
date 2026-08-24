@@ -1,0 +1,7 @@
+{
+  "version": "0.1.17",
+  "release_ref": "41c5af786cb25647475101daf2122464e0a73623",
+  "release_type": "beta",
+  "dry_run": false,
+  "reason": "Publish the fully validated TotemVanillaTweaks 0.1.17 protocol-native Observer release to Modrinth using TotemCore's established credential backfill path."
+}
