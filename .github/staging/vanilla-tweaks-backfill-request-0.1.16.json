@@ -1,0 +1,7 @@
+{
+  "version": "0.1.16",
+  "release_ref": "957b5ce18ad38020a03711e9fd70bfdfecec66be",
+  "release_type": "beta",
+  "dry_run": false,
+  "reason": "Publish the production-runtime-verified TotemVanillaTweaks 0.1.16 skeleton linkage hotfix to Modrinth using TotemCore's established credential backfill path."
+}
