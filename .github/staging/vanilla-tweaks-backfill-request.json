@@ -2,6 +2,6 @@
   "version": "0.1.15",
   "release_ref": "d5bef305ca2961d691156c9023c5f4237d256546",
   "release_type": "beta",
-  "dry_run": true,
-  "reason": "Validate TotemVanillaTweaks 0.1.15 Beta using the established TotemCore Modrinth credential backfill path."
+  "dry_run": false,
+  "reason": "Publish the dry-run-verified TotemVanillaTweaks 0.1.15 Beta to Modrinth using the established TotemCore credential backfill path."
 }
