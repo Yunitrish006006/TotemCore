@@ -105,7 +105,6 @@ jobs:
           api=https://api.modrinth.com/v2
           args=(--silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/2.0')
 
-          # Resolve immutable project identities from known published versions.
           curl --fail "${args[@]}" "$api/version/4vrd7gfz" >/tmp/vanilla-old.json
           project_id="$(jq -er '.project_id' /tmp/vanilla-old.json)"
           curl --fail "${args[@]}" "$api/version/iOzAgHtL" >/tmp/core-version.json
@@ -142,8 +141,10 @@ jobs:
               --arg t "$RELEASE_TYPE" \
               --argjson deps "$deps" \
               '{name:$n,version_number:$v,changelog:$c,dependencies:$deps,game_versions:["26.2"],version_type:$t,loaders:["fabric"],featured:false,status:"listed",project_id:$p,file_parts:["primary"],primary_file:"primary",environment:"client_and_server"}')"
+            printf '%s' "$data" >/tmp/version-data.json
+            jq -e . /tmp/version-data.json >/dev/null
             http_code="$(curl "${args[@]}" -o /tmp/version.json -w '%{http_code}' -X POST "$api/version" \
-              -F "data=${data};type=application/json" \
+              -F "data=</tmp/version-data.json;type=application/json" \
               -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive")"
             if [[ "$http_code" != 200 ]]; then
               echo "MODRINTH_CREATE_FAILED http=$http_code" >&2
