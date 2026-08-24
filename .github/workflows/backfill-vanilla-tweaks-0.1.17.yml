@@ -1,0 +1,132 @@
+name: Backfill VanillaTweaks 0.1.17 Beta
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/staging/vanilla-tweaks-backfill-request-0.1.17.json
+      - .github/workflows/backfill-vanilla-tweaks-0.1.17.yml
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out request
+        uses: actions/checkout@v4
+
+      - name: Read request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          request=.github/staging/vanilla-tweaks-backfill-request-0.1.17.json
+          version="$(jq -er '.version' "$request")"
+          release_ref="$(jq -er '.release_ref' "$request")"
+          release_type="$(jq -er '.release_type' "$request")"
+          dry_run="$(jq -r '.dry_run' "$request")"
+          test "$version" = 0.1.17
+          test "$release_ref" = 41c5af786cb25647475101daf2122464e0a73623
+          test "$release_type" = beta
+          test "$dry_run" = false
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release_ref=$release_ref" >> "$GITHUB_OUTPUT"
+          echo "release_type=$release_type" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Check out VanillaTweaks release
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemVanillaTweaks
+          ref: '${{ steps.request.outputs.release_ref }}'
+          path: vanilla
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out minimum supported TotemCore
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemCore
+          ref: 5be940a1fb91d250bb6781193bd49f0f24b40a43
+          path: core-0.7.0
+          persist-credentials: false
+
+      - name: Build and validate release JAR
+        shell: bash
+        env:
+          EXPECTED_VERSION: '${{ steps.request.outputs.version }}'
+        run: |
+          set -euo pipefail
+          chmod +x vanilla/gradlew core-0.7.0/gradlew
+          ./core-0.7.0/gradlew -p core-0.7.0 jar --no-daemon --stacktrace
+          core_jar="$GITHUB_WORKSPACE/core-0.7.0/build/libs/totem-core-0.7.0.jar"
+          test -f "$core_jar"
+          test "$(sed -n 's/^mod_version=//p' vanilla/gradle.properties)" = "$EXPECTED_VERSION"
+          grep -Fxq 'fabric.loom.dontRemap=true' vanilla/gradle.properties
+          ./vanilla/gradlew -p vanilla -PtotemCoreJar="$core_jar" clean jar --no-daemon --stacktrace
+          artifact="vanilla/build/libs/totem-vanilla-tweaks-${EXPECTED_VERSION}.jar"
+          test -f "$artifact"
+          unzip -p "$artifact" fabric.mod.json >/tmp/fabric.mod.json
+          jq -e --arg v "$EXPECTED_VERSION" '.id=="totem-vanilla-tweaks" and .version==$v and .depends.minecraft=="~26.2" and .depends.fabricloader==">=0.19.3" and .depends.java==">=25" and .depends["totem-core"]==">=0.7.0 <0.8.0"' /tmp/fabric.mod.json >/dev/null
+
+      - name: Publish and verify on Modrinth
+        id: modrinth
+        shell: bash
+        env:
+          MODRINTH_TOKEN: '${{ secrets.MODRINTH_TOKEN }}'
+          EXPECTED_VERSION: '${{ steps.request.outputs.version }}'
+          RELEASE_TYPE: '${{ steps.request.outputs.release_type }}'
+        run: |
+          set -euo pipefail
+          test -n "$MODRINTH_TOKEN" || { echo 'TotemCore MODRINTH_TOKEN is missing.' >&2; exit 1; }
+          api=https://api.modrinth.com/v2
+          args=(--silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/4.0')
+
+          project_id=mEcpkZT2
+          curl --fail "${args[@]}" "$api/project/${project_id}" >/tmp/vanilla-project.json
+          test "$(jq -er '.id' /tmp/vanilla-project.json)" = "$project_id"
+          curl --fail "${args[@]}" "$api/version/iOzAgHtL" >/tmp/core-version.json
+          core_project="$(jq -er '.project_id' /tmp/core-version.json)"
+          fabric_project=P7dR8mSH
+
+          artifact="vanilla/build/libs/totem-vanilla-tweaks-${EXPECTED_VERSION}.jar"
+          sha="$(sha512sum "$artifact" | awk '{print $1}')"
+          changelog_file="vanilla/.github/staging/modrinth-changelog-${EXPECTED_VERSION}.md"
+          test -s "$changelog_file"
+          changelog="$(cat "$changelog_file")"
+          deps="$(jq -nc --arg fabric "$fabric_project" --arg core "$core_project" '[{project_id:$fabric,dependency_type:"required"},{project_id:$core,dependency_type:"required"}]')"
+
+          curl --fail "${args[@]}" "$api/project/${project_id}/version?include_changelog=false" >/tmp/versions.json
+          count="$(jq --arg v "$EXPECTED_VERSION" '[.[] | select(.version_number==$v)] | length' /tmp/versions.json)"
+          if [[ "$count" == 0 ]]; then
+            jq -nc --arg n "totem-vanilla-tweaks ${EXPECTED_VERSION}" --arg v "$EXPECTED_VERSION" --arg c "$changelog" --arg p "$project_id" --arg t "$RELEASE_TYPE" --argjson deps "$deps" '{name:$n,version_number:$v,changelog:$c,dependencies:$deps,game_versions:["26.2"],version_type:$t,loaders:["fabric"],featured:false,status:"listed",project_id:$p,file_parts:["primary"],primary_file:"primary",environment:"client_and_server"}' >/tmp/version-data.json
+            code="$(curl "${args[@]}" -o /tmp/version.json -w '%{http_code}' -X POST "$api/version" -F "data=</tmp/version-data.json;type=application/json" -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive")"
+            if [[ "$code" != 200 ]]; then
+              echo "MODRINTH_CREATE_FAILED http=$code" >&2
+              jq -c '{error,description}' /tmp/version.json >&2 || cat /tmp/version.json >&2
+              exit 1
+            fi
+            version_id="$(jq -er '.id' /tmp/version.json)"
+          else
+            test "$count" = 1
+            version_id="$(jq -er --arg v "$EXPECTED_VERSION" '.[] | select(.version_number==$v) | .id' /tmp/versions.json)"
+            existing_sha="$(jq -er --arg v "$EXPECTED_VERSION" '.[] | select(.version_number==$v) | (([.files[]|select(.primary==true)][0]//.files[0]).hashes.sha512)' /tmp/versions.json)"
+            test "$existing_sha" = "$sha"
+          fi
+
+          curl --fail "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
+          jq -e --arg p "$project_id" --arg v "$EXPECTED_VERSION" --arg f "$(basename "$artifact")" --arg sha "$sha" --arg type "$RELEASE_TYPE" --arg fabric "$fabric_project" --arg core "$core_project" '.project_id==$p and .version_number==$v and .version_type==$type and .game_versions==["26.2"] and .loaders==["fabric"] and (([.files[]|select(.primary==true)][0]//.files[0]).filename==$f) and (([.files[]|select(.primary==true)][0]//.files[0]).hashes.sha512==$sha) and ([.dependencies[] | select(.project_id==$fabric and .dependency_type=="required")] | length)==1 and ([.dependencies[] | select(.project_id==$core and .dependency_type=="required")] | length)==1' /tmp/remote.json >/dev/null
+
+          echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
+          echo "sha512=$sha" >> "$GITHUB_OUTPUT"
+          echo "PUBLISH_OK version_id=$version_id version=$EXPECTED_VERSION release_type=$RELEASE_TYPE sha512=$sha"
