@@ -103,16 +103,16 @@ jobs:
           test -n "$MODRINTH_TOKEN" || { echo 'TotemCore MODRINTH_TOKEN is missing.' >&2; exit 1; }
 
           api=https://api.modrinth.com/v2
-          args=(--fail --silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/2.0')
+          args=(--silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/2.0')
 
           # Resolve immutable project identities from known published versions.
-          curl "${args[@]}" "$api/version/4vrd7gfz" >/tmp/vanilla-old.json
+          curl --fail "${args[@]}" "$api/version/4vrd7gfz" >/tmp/vanilla-old.json
           project_id="$(jq -er '.project_id' /tmp/vanilla-old.json)"
-          curl "${args[@]}" "$api/version/iOzAgHtL" >/tmp/core-version.json
+          curl --fail "${args[@]}" "$api/version/iOzAgHtL" >/tmp/core-version.json
           core_project="$(jq -er '.project_id' /tmp/core-version.json)"
           fabric_project=P7dR8mSH
 
-          curl "${args[@]}" "$api/project/${project_id}" >/tmp/project.json
+          curl --fail "${args[@]}" "$api/project/${project_id}" >/tmp/project.json
           test "$(jq -er '.id' /tmp/project.json)" = "$project_id"
 
           artifact="vanilla/build/libs/totem-vanilla-tweaks-${EXPECTED_VERSION}.jar"
@@ -122,7 +122,7 @@ jobs:
           changelog="$(cat "$changelog_file")"
           deps="$(jq -nc --arg fabric "$fabric_project" --arg core "$core_project" '[{project_id:$fabric,dependency_type:"required"},{project_id:$core,dependency_type:"required"}]')"
 
-          curl "${args[@]}" "$api/project/${project_id}/version?include_changelog=false" >/tmp/versions.json
+          curl --fail "${args[@]}" "$api/project/${project_id}/version?include_changelog=false" >/tmp/versions.json
           existing_count="$(jq --arg v "$EXPECTED_VERSION" '[.[] | select(.version_number==$v)] | length' /tmp/versions.json)"
 
           if [[ "$DRY_RUN" == true ]]; then
@@ -142,10 +142,14 @@ jobs:
               --arg t "$RELEASE_TYPE" \
               --argjson deps "$deps" \
               '{name:$n,version_number:$v,changelog:$c,dependencies:$deps,game_versions:["26.2"],version_type:$t,loaders:["fabric"],featured:false,status:"listed",project_id:$p,file_parts:["primary"],primary_file:"primary",environment:"client_and_server"}')"
-            curl "${args[@]}" -X POST "$api/version" \
+            http_code="$(curl "${args[@]}" -o /tmp/version.json -w '%{http_code}' -X POST "$api/version" \
               -F "data=${data};type=application/json" \
-              -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive" \
-              >/tmp/version.json
+              -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive")"
+            if [[ "$http_code" != 200 ]]; then
+              echo "MODRINTH_CREATE_FAILED http=$http_code" >&2
+              jq -c '{error,description}' /tmp/version.json >&2 || cat /tmp/version.json >&2
+              exit 1
+            fi
             version_id="$(jq -er '.id' /tmp/version.json)"
           else
             test "$existing_count" = 1
@@ -154,7 +158,7 @@ jobs:
             test "$existing_sha" = "$sha" || { echo "Existing ${EXPECTED_VERSION} has a different SHA-512." >&2; exit 1; }
           fi
 
-          curl "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
+          curl --fail "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
           jq -e \
             --arg p "$project_id" \
             --arg v "$EXPECTED_VERSION" \
