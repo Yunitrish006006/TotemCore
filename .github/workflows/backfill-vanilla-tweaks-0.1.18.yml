@@ -1,0 +1,230 @@
+name: Backfill VanillaTweaks 0.1.18 Beta
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Exact lowercase TotemVanillaTweaks 40-character commit SHA to publish
+        required: true
+        type: string
+      dry_run:
+        description: Authenticate and validate without publishing
+        required: true
+        default: true
+        type: boolean
+      submit_for_review:
+        description: Submit the Modrinth project for public review after a verified publish
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vanilla-tweaks-0.1.18-modrinth
+  cancel-in-progress: false
+
+env:
+  VANILLA_PROJECT_ID: mEcpkZT2
+  FABRIC_API_PROJECT_ID: P7dR8mSH
+  TOTEM_CORE_REFERENCE_VERSION_ID: iOzAgHtL
+  TOTEM_CORE_REF: 5be940a1fb91d250bb6781193bd49f0f24b40a43
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Check out requested VanillaTweaks source
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemVanillaTweaks
+          ref: '${{ inputs.release_ref }}'
+          path: vanilla
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify requested source
+        id: source
+        shell: bash
+        env:
+          REQUESTED_REF: '${{ inputs.release_ref }}'
+        run: |
+          set -euo pipefail
+          [[ "$REQUESTED_REF" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'release_ref must be an exact lowercase 40-character commit SHA.' >&2
+            exit 1
+          }
+          resolved="$(git -C vanilla rev-parse HEAD)"
+          test "$resolved" = "$REQUESTED_REF"
+          remote_main="$(git -C vanilla ls-remote origin refs/heads/main | awk '{print $1}')"
+          test -n "$remote_main"
+          test "$resolved" = "$remote_main"
+          test "$(sed -n 's/^mod_version=//p' vanilla/gradle.properties)" = 0.1.18
+          test -s vanilla/.github/staging/modrinth-changelog-0.1.18.md
+          echo "sha=$resolved" >> "$GITHUB_OUTPUT"
+
+      - name: Check out pinned minimum TotemCore
+        uses: actions/checkout@v4
+        with:
+          repository: Yunitrish006006/TotemCore
+          ref: '${{ env.TOTEM_CORE_REF }}'
+          path: core-0.7.0
+          persist-credentials: false
+
+      - name: Build and validate release JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C core-0.7.0 rev-parse HEAD)" = "$TOTEM_CORE_REF"
+          test "$(sed -n 's/^mod_version=//p' core-0.7.0/gradle.properties)" = 0.7.0
+          chmod +x vanilla/gradlew core-0.7.0/gradlew
+          ./core-0.7.0/gradlew -p core-0.7.0 jar --no-daemon --stacktrace
+          core_jar="$GITHUB_WORKSPACE/core-0.7.0/build/libs/totem-core-0.7.0.jar"
+          test -f "$core_jar"
+          ./vanilla/gradlew -p vanilla -PtotemCoreJar="$core_jar" clean jar --no-daemon --stacktrace
+          artifact=vanilla/build/libs/totem-vanilla-tweaks-0.1.18.jar
+          test -f "$artifact"
+          unzip -p "$artifact" fabric.mod.json > /tmp/vanilla-fabric.mod.json
+          jq -e '
+            .id == "totem-vanilla-tweaks"
+            and .version == "0.1.18"
+            and .depends.minecraft == "~26.2"
+            and .depends.fabricloader == ">=0.19.3"
+            and .depends.java == ">=25"
+            and .depends["totem-core"] == ">=0.7.0 <0.8.0"
+          ' /tmp/vanilla-fabric.mod.json > /dev/null
+
+      - name: Validate, publish, and verify on Modrinth
+        id: modrinth
+        shell: bash
+        env:
+          MODRINTH_TOKEN: '${{ secrets.MODRINTH_TOKEN }}'
+          DRY_RUN: '${{ inputs.dry_run }}'
+        run: |
+          set -euo pipefail
+          test -n "$MODRINTH_TOKEN" || { echo 'TotemCore MODRINTH_TOKEN is missing.' >&2; exit 1; }
+
+          api=https://api.modrinth.com/v2
+          args=(--fail --silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/5.0')
+          artifact=vanilla/build/libs/totem-vanilla-tweaks-0.1.18.jar
+          artifact_name="$(basename "$artifact")"
+          local_sha="$(sha512sum "$artifact" | awk '{print $1}')"
+
+          curl "${args[@]}" "$api/project/$VANILLA_PROJECT_ID" > /tmp/vanilla-project.json
+          test "$(jq -er .id /tmp/vanilla-project.json)" = "$VANILLA_PROJECT_ID"
+          curl "${args[@]}" "$api/project/$FABRIC_API_PROJECT_ID" > /tmp/fabric-api-project.json
+          test "$(jq -er .id /tmp/fabric-api-project.json)" = "$FABRIC_API_PROJECT_ID"
+          curl "${args[@]}" "$api/version/$TOTEM_CORE_REFERENCE_VERSION_ID" > /tmp/core-version.json
+          core_project="$(jq -er .project_id /tmp/core-version.json)"
+          dependencies="$(jq -nc --arg fabric "$FABRIC_API_PROJECT_ID" --arg core "$core_project" '[
+            {project_id:$fabric,dependency_type:"required"},
+            {project_id:$core,dependency_type:"required"}
+          ]')"
+
+          curl "${args[@]}" "$api/project/$VANILLA_PROJECT_ID/version?include_changelog=false" > /tmp/versions.json
+          count="$(jq '[.[] | select(.version_number == "0.1.18")] | length' /tmp/versions.json)"
+          test "$count" = 0 || test "$count" = 1
+
+          verify_remote() {
+            local version_id="$1"
+            curl "${args[@]}" "$api/version/$version_id" > /tmp/remote-version.json
+            jq -e \
+              --arg project "$VANILLA_PROJECT_ID" \
+              --arg file "$artifact_name" \
+              --arg sha "$local_sha" \
+              --arg fabric "$FABRIC_API_PROJECT_ID" \
+              --arg core "$core_project" \
+              '.project_id == $project
+               and .version_number == "0.1.18"
+               and .version_type == "beta"
+               and .game_versions == ["26.2"]
+               and .loaders == ["fabric"]
+               and (([.files[] | select(.primary == true)][0] // .files[0]).filename == $file)
+               and (([.files[] | select(.primary == true)][0] // .files[0]).hashes.sha512 == $sha)
+               and (.dependencies | length) == 2
+               and ([.dependencies[] | select(.project_id == $fabric and .dependency_type == "required")] | length) == 1
+               and ([.dependencies[] | select(.project_id == $core and .dependency_type == "required")] | length) == 1' \
+              /tmp/remote-version.json > /dev/null
+          }
+
+          version_id=''
+          if [[ "$count" == 1 ]]; then
+            version_id="$(jq -er '.[] | select(.version_number == "0.1.18") | .id' /tmp/versions.json)"
+            verify_remote "$version_id"
+          fi
+
+          if [[ "$DRY_RUN" == true ]]; then
+            collision=none
+            [[ -z "$version_id" ]] || collision="verified-existing-$version_id"
+            echo "DRY_RUN_OK source=${{ steps.source.outputs.sha }} version=0.1.18 collision=$collision sha512=$local_sha"
+            echo "sha512=$local_sha" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ -z "$version_id" ]]; then
+            changelog="$(cat vanilla/.github/staging/modrinth-changelog-0.1.18.md)"
+            test -n "$changelog"
+            jq -nc \
+              --arg name 'totem-vanilla-tweaks 0.1.18' \
+              --arg changelog "$changelog" \
+              --arg project "$VANILLA_PROJECT_ID" \
+              --argjson dependencies "$dependencies" \
+              '{
+                name:$name,
+                version_number:"0.1.18",
+                changelog:$changelog,
+                dependencies:$dependencies,
+                game_versions:["26.2"],
+                version_type:"beta",
+                loaders:["fabric"],
+                featured:false,
+                status:"listed",
+                project_id:$project,
+                file_parts:["primary"],
+                primary_file:"primary",
+                environment:"client_and_server"
+              }' > /tmp/version-data.json
+            curl "${args[@]}" -X POST "$api/version" \
+              -F 'data=</tmp/version-data.json;type=application/json' \
+              -F "primary=@${artifact};filename=${artifact_name};type=application/java-archive" \
+              > /tmp/created-version.json
+            version_id="$(jq -er .id /tmp/created-version.json)"
+          fi
+
+          verify_remote "$version_id"
+          echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
+          echo "sha512=$local_sha" >> "$GITHUB_OUTPUT"
+          echo "PUBLISH_OK version_id=$version_id version=0.1.18 release_type=beta sha512=$local_sha"
+
+      - name: Submit project for public review
+        if: inputs.dry_run == false && inputs.submit_for_review == true && steps.modrinth.outcome == 'success'
+        shell: bash
+        env:
+          MODRINTH_TOKEN: '${{ secrets.MODRINTH_TOKEN }}'
+        run: |
+          set -euo pipefail
+          test -n "$MODRINTH_TOKEN"
+          api=https://api.modrinth.com/v2
+          args=(--fail --silent --show-error --retry 3 -H "Authorization: ${MODRINTH_TOKEN}" -H 'User-Agent: Yunitrish006006/totem-vanilla-tweaks-backfill/5.0')
+          curl "${args[@]}" "$api/project/$VANILLA_PROJECT_ID" > /tmp/project-before-review.json
+          status="$(jq -er .status /tmp/project-before-review.json)"
+          if [[ "$status" != approved && "$status" != processing ]]; then
+            curl "${args[@]}" -X PATCH -H 'Content-Type: application/json' \
+              --data '{"requested_status":"approved"}' \
+              "$api/project/$VANILLA_PROJECT_ID" > /dev/null
+          fi
+          curl "${args[@]}" "$api/project/$VANILLA_PROJECT_ID" > /tmp/project-after-review.json
+          jq -e '.status == "approved" or .status == "processing" or .requested_status == "approved"' \
+            /tmp/project-after-review.json > /dev/null
+          echo "PROJECT_REVIEW_REQUESTED project=$VANILLA_PROJECT_ID"
