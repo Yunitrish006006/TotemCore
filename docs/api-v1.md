@@ -38,13 +38,19 @@ modules may register optional `TotemManualPageOverlay` implementations for
 page-specific diagrams. The shared layout exposes a Split action for a held
 multi-section manual; ordinary written books retain vanilla rendering.
 
+`client.world` is the client-only, stateless world-outline primitive. Feature
+modules submit block or cuboid outlines from their own render callback using an
+immutable colour, line width and explicit `DEPTH_TESTED` or `THROUGH_WALLS`
+occlusion mode. Core does not retain positions, register a feature renderer or
+own selection, preview, packet, permission, timer or cleanup state.
+
 Gameplay code is prohibited: items, blocks, entities, menus, recipes, client
 screens, feature-specific renderers, Discord, Remnant, Automata and Nexus
 implementations all belong to their feature repositories. Feature-specific
 SavedData also stays outside Core. Cross-module identity/relationship state is
 an explicit exception when Core is the canonical owner, as with `social`.
-The canonical manual's client-only Mixin and generic overlay seam are the sole
-shared presentation exception.
+The canonical manual's client-only Mixin and generic overlay seam, plus the
+stateless world-outline primitive, are the shared presentation exceptions.
 
 Patch versions retain public signatures and semantics. Minor versions add
 compatible APIs. Major versions are required for incompatible changes.
