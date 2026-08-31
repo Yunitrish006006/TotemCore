@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Objects;
 
@@ -35,6 +36,17 @@ public final class TotemWorldOutlines {
                 bounds,
                 GizmoStyle.stroke(style.argb(), style.lineWidth())
         );
+        if (style.occlusion() == WorldOutlineOcclusion.THROUGH_WALLS) {
+            properties.setAlwaysOnTop();
+        }
+    }
+
+    public static void line(Vec3 from, Vec3 to, WorldOutlineStyle style) {
+        Objects.requireNonNull(from, "from");
+        Objects.requireNonNull(to, "to");
+        Objects.requireNonNull(style, "style");
+
+        var properties = Gizmos.line(from, to, style.argb(), style.lineWidth());
         if (style.occlusion() == WorldOutlineOcclusion.THROUGH_WALLS) {
             properties.setAlwaysOnTop();
         }

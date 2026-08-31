@@ -6,14 +6,14 @@ TotemCore 是 Totem 系列功能模組的共用 API 基礎。它提供跨模組�
 Totem 手冊提供共用雙頁版面，也提供不保存功能狀態的世界框線 API，但不取代
 一般原版書本。
 
-目前版本為 **0.7.13**，API root 為 `dev.totem.core.api.v1`。
+目前版本為 **0.7.14**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
 - DeadRecall 整合 JAR 會內含對應版本的 TotemCore，不需另外安裝。
-- 使用獨立模組時，把 `totem-core-0.7.13.jar` 與相容的功能模組一起放進
+- 使用獨立模組時，把 `totem-core-0.7.14.jar` 與相容的功能模組一起放進
   Client／Server 的 `mods/`。
 - 0.7.x 功能模組改用驗證過的 Core minor 範圍；目前目標為
   `totem-core >=0.7.0 <0.8.0`，不再因 Core patch release 強迫全系列重發。
@@ -44,7 +44,7 @@ Totem 手冊提供共用雙頁版面，也提供不保存功能狀態的世界�
 | `LegacyItemMigrationRegistry` | DeadRecall 註冊舊 ID 對應，功能模組以 canonical Item 接受並轉換舊堆疊 |
 | `manual.*` | 功能模組登記本地化章節，組裝、刷新、拆分及重新整合原版 Totem 手冊 |
 | `client.manual.*` | 共用雙頁手冊版面，以及功能模組可選的頁面圖示覆蓋註冊表 |
-| `client.world.*` | 無狀態方塊／長方體框線提交，以及明確的深度遮擋或穿牆模式 |
+| `client.world.*` | 無狀態方塊／長方體框線與任意兩點實線提交，以及明確的深度遮擋或穿牆模式 |
 
 ## 共用好友系統
 
