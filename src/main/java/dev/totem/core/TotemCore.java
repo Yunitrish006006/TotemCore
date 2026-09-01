@@ -1,5 +1,6 @@
 package dev.totem.core;
 
+import dev.totem.core.api.v1.gamerule.TotemGameRuleCategories;
 import dev.totem.core.api.v1.manual.TotemManualOnboarding;
 import dev.totem.core.migration.LegacyAliasBootstrap;
 import dev.totem.core.network.ExactModuleVersionGate;
@@ -14,6 +15,7 @@ public final class TotemCore implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        TotemGameRuleCategories.register();
         LegacyAliasBootstrap.register();
         ExactModuleVersionGate.initializeServer();
         TotemManualPayloadRegistration.register();

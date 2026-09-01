@@ -1,4 +1,5 @@
 {
+  "gamerule.category.totem.rules": "Totem 模組世界規則",
   "book.totem.manual.contents": "目錄",
   "book.totem.manual.cover": "TOTEM 手冊\n\n本書已記錄 %s 個教學章節。\n\n其他模組的章節會直接加入同一本手冊；按「目錄」可直接跳到已記錄的部分。",
   "book.totem.manual.section": "%s\n\n本章內容由已安裝的 Totem 模組提供。",

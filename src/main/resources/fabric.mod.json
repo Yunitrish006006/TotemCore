@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "TotemCore",
   "icon": "assets/totem-core/icon.png",
-  "description": "Versioned shared API contracts and compatibility migration primitives for Totem feature mods.",
+  "description": "Versioned shared API contracts, world-rule categories, and compatibility migration primitives for Totem feature mods.",
   "environment": "*",
   "entrypoints": {
     "main": ["dev.totem.core.TotemCore"],

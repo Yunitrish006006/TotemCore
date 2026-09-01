@@ -24,6 +24,12 @@ death-owning module remains solely responsible for transactional extraction,
 persistence and exactly-once respawn restoration. Authorization must not
 itself mutate or copy the item.
 
+`gamerule.TotemGameRuleCategories` owns the stable `totem:rules` vanilla
+`GameRuleCategory`. Feature modules register their own rules against this one
+shared category, preserving rule identifiers, defaults, callbacks and vanilla
+server-authoritative editing. Core does not register feature-specific rules or
+copy their values.
+
 `manual` is the shared vanilla written-book contract. Feature modules register
 immutable localized sections in `TotemManualRegistry`, then explicitly
 activate `TotemManualLifecycle` and delegate their own acquisition interaction

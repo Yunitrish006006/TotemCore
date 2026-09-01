@@ -1,4 +1,5 @@
 {
+  "gamerule.category.totem.rules": "Totem World Rules",
   "book.totem.manual.contents": "Contents",
   "book.totem.manual.cover": "TOTEM MANUAL\n\nThis book contains %s recorded chapter(s).\n\nOther module chapters are added to this same manual. Select Contents to jump directly to a recorded section.",
   "book.totem.manual.section": "%s\n\nThis chapter is supplied by an installed Totem module.",
