@@ -51,4 +51,13 @@ public final class TotemWorldOutlines {
             properties.setAlwaysOnTop();
         }
     }
+
+    /** Submits a previously derived immutable voxel-union outline plan. */
+    public static void submit(VoxelUnionOutline outline, WorldOutlineStyle style) {
+        Objects.requireNonNull(outline, "outline");
+        Objects.requireNonNull(style, "style");
+        for (VoxelUnionOutline.Segment segment : outline.segments()) {
+            line(segment.from(), segment.to(), style);
+        }
+    }
 }

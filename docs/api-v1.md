@@ -47,9 +47,15 @@ multi-section manual; ordinary written books retain vanilla rendering.
 `client.world` is the client-only, stateless world-outline primitive. Feature
 modules submit block or cuboid outlines and arbitrary two-point solid lines
 from their own render callback using an immutable colour, line width and
-explicit `DEPTH_TESTED` or `THROUGH_WALLS` occlusion mode. Core does not retain
-positions, register a feature renderer or own selection, preview, packet,
-permission, timer or cleanup state.
+explicit `DEPTH_TESTED` or `THROUGH_WALLS` occlusion mode. For dense block sets,
+`VoxelUnionOutline.of(...)` derives an immutable exterior-only wireframe plan:
+shared edges and coplanar grid seams are removed, enclosed cavity surfaces are
+ignored, and collinear edges are merged before `TotemWorldOutlines.submit(...)`.
+Face-connected components are evaluated independently, while a pathological
+component whose padded envelope exceeds 1,000,000 cells is rejected instead of
+performing an unbounded flood fill. Consumers should cache the plan until their
+semantic block set changes. Core does not retain positions, register a feature
+renderer or own selection, preview, packet, permission, timer or cleanup state.
 
 Gameplay code is prohibited: items, blocks, entities, menus, recipes, client
 screens, feature-specific renderers, Discord, Remnant, Automata and Nexus
