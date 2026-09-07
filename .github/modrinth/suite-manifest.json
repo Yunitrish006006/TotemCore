@@ -1,116 +1,18 @@
 {
   "projects": [
     {
-      "module": "TotemVillagers",
-      "id": "kfuP4czk",
-      "source_url": "https://github.com/Yunitrish006006/TotemVillagers",
-      "expected": {
-        "title": "Totem Villagers",
-        "slug": "totem-villagers-workforce"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
-      "module": "TotemLocksmith",
-      "id": "7MXfMVJA",
-      "source_url": "https://github.com/Yunitrish006006/TotemLocksmith",
-      "expected": {
-        "title": "Totem Locksmith",
-        "slug": "totem-locksmith"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
       "module": "TotemRemnant",
       "id": "dhochP34",
       "source_url": "https://github.com/Yunitrish006006/TotemRemnant",
       "expected": {
         "title": "TotemRemnant",
-        "slug": "totem-remnant"
+        "slug": "totem-remnant",
+        "description": "Carry upgradeable backpacks, recover eligible items after death, and control portable-container nesting.",
+        "body_sha256": "b3c7a920b84eb708c5dfd706fca47de94a6a143863c49ea84e64a1c87de41c85"
       },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
-      "module": "TotemExcavation",
-      "id": "8JdAMczX",
-      "source_url": "https://github.com/Yunitrish006006/TotemExcavation",
-      "expected": {
-        "title": "Totem Excavation",
-        "slug": "totem-excavation"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
-      "module": "TotemVanillaTweaks",
-      "id": "mEcpkZT2",
-      "source_url": "https://github.com/Yunitrish006006/TotemVanillaTweaks",
-      "expected": {
-        "title": "Totemvt",
-        "slug": "totem-vanilla-tweaks"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
-      "module": "TotemAlchemy",
-      "id": "JnAGUw9w",
-      "source_url": "https://github.com/Yunitrish006006/TotemAlchemy",
-      "expected": {
-        "title": "TotemAlchemy",
-        "slug": "totem-alchemy"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
-      }
-    },
-    {
-      "module": "TotemAutomata",
-      "id": "C8f15uNO",
-      "source_url": "https://github.com/Yunitrish006006/TotemAutomata",
-      "expected": {
-        "title": "TotemAutomata",
-        "slug": "totem-automata"
-      },
-      "ai": {
-        "uses": [
-          "code",
-          "text",
-          "functionality"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
+      "changes": {
+        "description": "Carry upgradeable backpacks, combine protective modules, recover eligible items after death, and crystallize Echo Shards from sculk.",
+        "body_file": "descriptions/TotemRemnant.md"
       }
     },
     {
@@ -119,14 +21,43 @@
       "source_url": "https://github.com/Yunitrish006006/TotemDiscordBridge",
       "expected": {
         "title": "TotemDiscordBridge",
-        "slug": "totem-discord-bridge"
+        "slug": "totem-discord-bridge",
+        "description": "Relay Minecraft chat, player events, and server status to Discord through a separately configured HTTPS Worker.",
+        "body_sha256": "3d99964804b76b42664bd5ccfd4e58c0e3e86c1cf92189ee14d44a361677d058"
       },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
+      "changes": {
+        "description": "Connect Minecraft chat and server events to Discord, link player accounts, and manage an optional external bridge through in-game controls.",
+        "body_file": "descriptions/TotemDiscordBridge.md"
+      }
+    },
+    {
+      "module": "TotemVillagers",
+      "id": "kfuP4czk",
+      "source_url": "https://github.com/Yunitrish006006/TotemVillagers",
+      "expected": {
+        "title": "Totem Villagers",
+        "slug": "totem-villagers-workforce",
+        "description": "Build a village economy where workers use real materials, food, tools, goods, and emeralds to produce their trade stock.",
+        "body_sha256": "29519460611f068cf529fadde33b2ecd4a302ca8d63ca827a324af6bc39fa59b"
+      },
+      "changes": {
+        "description": "Build a working village economy with stocked trades, material-backed professions, woodcutters, builders, guard posts, and mangrove villages.",
+        "body_file": "descriptions/TotemVillagers.md"
+      }
+    },
+    {
+      "module": "TotemVanillaTweaks",
+      "id": "mEcpkZT2",
+      "source_url": "https://github.com/Yunitrish006006/TotemVanillaTweaks",
+      "expected": {
+        "title": "Totemvt",
+        "slug": "totem-vanilla-tweaks",
+        "description": "Sort inventories, adjust survival recipes and blocks, and let authorized administrators observe supported player screens.",
+        "body_sha256": "4e59dc501f8f2d034bce2c168bc7e01a57a539b0c4b638d20d2d1fef53b74dc5"
+      },
+      "changes": {
+        "description": "Sort inventory, fill bookshelves, recover furnace XP through hoppers, and observe supported player interfaces with read-only administrator tools.",
+        "body_file": "descriptions/TotemVanillaTweaks.md"
       }
     },
     {
@@ -135,14 +66,88 @@
       "source_url": "https://github.com/Yunitrish006006/TotemEnchanting",
       "expected": {
         "title": "TotemEnchanting",
-        "slug": "totem-enchanting"
+        "slug": "totem-enchanting",
+        "description": "Use the books inside Chiseled Bookshelves to increase enchanting power, with a higher ceiling and particle feedback.",
+        "body_sha256": "ea5790986c4b1470ce34c98ac35c03b2140e9767c98804c8de94251b471bc684"
       },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
+      "changes": {
+        "description": "Build enchanting power with real books, unlock offers beyond level 30, and extend Bane of Arthropods to skeleton-family enemies.",
+        "body_file": "descriptions/TotemEnchanting.md"
+      }
+    },
+    {
+      "module": "TotemLocksmith",
+      "id": "7MXfMVJA",
+      "source_url": "https://github.com/Yunitrish006006/TotemLocksmith",
+      "expected": {
+        "title": "Totem Locksmith",
+        "slug": "totem-locksmith",
+        "description": "Control access to connected chests, barrels, and hopper networks with padlocks, keys, and configurable permissions.",
+        "body_sha256": "b28cde923c2e7f48aeea3efe59271e7a02876a0ee011e7f9b9587199af3bb6e3"
+      },
+      "changes": {
+        "description": "Lock chest, barrel, and hopper networks with padlocks, physical keys, role-based access, friendships, and automation permissions.",
+        "body_file": "descriptions/TotemLocksmith.md"
+      }
+    },
+    {
+      "module": "TotemCore",
+      "id": "ZggYV6cS",
+      "source_url": "https://github.com/Yunitrish006006/TotemCore",
+      "expected": {
+        "title": "TotemLibrary",
+        "slug": "totemlibrary",
+        "description": "Shared APIs, unified manuals, exact client/server version checks, events, and legacy ID migration for the Totem ecosystem.",
+        "body_sha256": "191a25a5afaa011042bb5910d8d9e7e1cf0e50a36d8be522e84d9ddfc515b4ac"
+      },
+      "changes": {
+        "description": "Shared foundation for Totem mods: one growing in-game manual, persistent friendships, optional integrations, and reusable server/client APIs.",
+        "body_file": "descriptions/TotemCore.md"
+      }
+    },
+    {
+      "module": "TotemAlchemy",
+      "id": "JnAGUw9w",
+      "source_url": "https://github.com/Yunitrish006006/TotemAlchemy",
+      "expected": {
+        "title": "TotemAlchemy",
+        "slug": "totem-alchemy",
+        "description": "Discover potion effects through experiments, record personal research, and cook mixtures in heated cauldrons.",
+        "body_sha256": "e38eab665f8af3c3539f7e5d439ad5c98905dc58fe54ffdbd0f0e874d482904f"
+      },
+      "changes": {
+        "description": "Discover multi-effect potions, research ingredients, manage cauldron heat, and turn everyday materials into gunpowder and new drinks.",
+        "body_file": "descriptions/TotemAlchemy.md"
+      }
+    },
+    {
+      "module": "TotemExcavation",
+      "id": "8JdAMczX",
+      "source_url": "https://github.com/Yunitrish006006/TotemExcavation",
+      "expected": {
+        "title": "Totem Excavation",
+        "slug": "totem-excavation",
+        "description": "Select mining areas with seven tiers of hammers, and harvest and replant mature crops with a hoe.",
+        "body_sha256": "3b71615d997ceb64d21976e420b170fe1e2259e3f09eb1e0e740d1e39b219031"
+      },
+      "changes": {
+        "description": "Excavate selected areas with seven tiers of hammers, or harvest and replant mature crops with compatible hoes.",
+        "body_file": "descriptions/TotemExcavation.md"
+      }
+    },
+    {
+      "module": "TotemAutomata",
+      "id": "C8f15uNO",
+      "source_url": "https://github.com/Yunitrish006006/TotemAutomata",
+      "expected": {
+        "title": "TotemAutomata",
+        "slug": "totem-automata",
+        "description": "Configure Copper Golems to sort storage and gather resources using tools, fuel, work areas, and optional AI rules.",
+        "body_sha256": "6f9cf53e97e09f2ac3bd235acbb1b3cac554861ab18875a025668b6890af8830"
+      },
+      "changes": {
+        "description": "Turn copper golems into configurable sorting and gathering helpers, with manual filters, tools, furnace routing, and optional AI classification.",
+        "body_file": "descriptions/TotemAutomata.md"
       }
     },
     {
@@ -151,14 +156,13 @@
       "source_url": "https://github.com/Yunitrish006006/TotemNexus",
       "expected": {
         "title": "TotemNexus",
-        "slug": "totem-nexus"
+        "slug": "totem-nexus",
+        "description": "Build lodestone travel networks with material-based structures, destination lists, maps, and access controls.",
+        "body_sha256": "c14c3ba84131d4fea1ebf92900dabd4313a05277d15ba4bb57cdf56aa3c36bb8"
       },
-      "ai": {
-        "uses": [
-          "code",
-          "text"
-        ],
-        "note": "GUI rendering code was developed with AI coding assistance. The visual artwork was hand-drawn by the creator."
+      "changes": {
+        "description": "Build lodestone travel networks with maps, shared destinations, safe teleport checks, optional death recovery, and configurable distributed spawns.",
+        "body_file": "descriptions/TotemNexus.md"
       }
     }
   ]
