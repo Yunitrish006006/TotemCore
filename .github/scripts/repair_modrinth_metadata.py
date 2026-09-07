@@ -37,8 +37,15 @@ def api(version, path, method="GET", payload=None):
             body = response.read()
             return json.loads(body) if body else None
     except urllib.error.HTTPError as error:
-        # Do not print request headers, credentials, or arbitrary response bodies.
-        raise ApiError(f"Modrinth {method} {version} request failed: HTTP {error.code}") from None
+        # Include only bounded API diagnostics, never request headers or credentials.
+        detail = ""
+        try:
+            response_error = json.loads(error.read(4096))
+            detail = str(response_error.get("description", response_error.get("error", "")))
+            detail = detail.replace(token, "[redacted]")[:800]
+        except (ValueError, AttributeError):
+            pass
+        raise ApiError(f"Modrinth {method} {version} request failed: HTTP {error.code} {detail}") from None
     except urllib.error.URLError:
         raise ApiError(f"Modrinth {method} {version} request failed: connection error") from None
 
@@ -130,7 +137,12 @@ def main():
     desired_slug = os.environ.get("PROJECT_SLUG", "").strip() or project["slug"]
     desired_title = os.environ.get("PROJECT_TITLE", "").strip() or project["title"]
     desired = ai_disclosure(before, os.environ.get("AI_ASSETS", "false") == "true")
-    api("v2", path, "PATCH", {"slug": desired_slug, "title": desired_title, "issues_url": SOURCE + "/issues"})
+    metadata = {}
+    for key, value in {"slug": desired_slug, "title": desired_title, "issues_url": SOURCE + "/issues"}.items():
+        if project.get(key) != value:
+            metadata[key] = value
+    if metadata:
+        api("v2", path, "PATCH", metadata)
     api("v3", path + "/disclosures", "PATCH", {"set": [desired], "remove": []})
     project = api("v2", path)
     after = disclosures(path)
