@@ -4,11 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Inspect other active Totem projects without changing remote state
+        description: Inspect projects or apply the reviewed suite manifest
         required: true
         default: inspect
         type: choice
-        options: [inspect]
+        options: [inspect, apply]
+      modules:
+        description: Optional comma-separated manifest module names for apply
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -27,6 +32,7 @@ jobs:
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           SUITE_MODE: ${{ inputs.mode }}
+          SUITE_MODULES: ${{ inputs.modules }}
         run: python3 .github/scripts/audit_modrinth_suite.py
       - name: Preserve audit snapshot
         if: always()
