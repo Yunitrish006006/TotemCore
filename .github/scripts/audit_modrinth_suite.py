@@ -149,8 +149,19 @@ def apply_manifest(report):
             api("v2", path, "PATCH", patch)
         if item["sets"]:
             api("v3", path + "/disclosures", "PATCH", {"set": item["sets"], "remove": []})
-        after = api("v2", path)
-        disclosures = get_disclosures(path)
+        # Modrinth reads may briefly lag a successful write. Retry reads only.
+        for attempt in range(6):
+            after = api("v2", path)
+            disclosures = get_disclosures(path)
+            metadata_ready = all(after.get(key) == value for key, value in item["desired"].items())
+            disclosures_ready = all(any(entry.get("type") == desired["type"]
+                                        and not entry.get("deleted_at")
+                                        and disclosure_matches(entry, desired)
+                                        for entry in disclosures) for desired in item["sets"])
+            if metadata_ready and disclosures_ready:
+                break
+            if attempt < 5:
+                time.sleep(1)
         item["after"] = after
         item["after_disclosures"] = disclosures
         for key in ("id", "slug", "title", "source_url", "status", "icon_url", "gallery", "versions", "license", "client_side", "server_side"):
