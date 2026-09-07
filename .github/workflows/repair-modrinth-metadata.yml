@@ -14,6 +14,16 @@ on:
         required: true
         default: false
         type: boolean
+      project_slug:
+        description: Optional new URL slug; leave empty to preserve the current slug
+        required: false
+        default: ''
+        type: string
+      project_title:
+        description: Optional new project name; leave empty to preserve the current name
+        required: false
+        default: ''
+        type: string
       submit_for_review:
         description: Request review after applying and verifying all metadata
         required: true
@@ -39,5 +49,7 @@ jobs:
           MODRINTH_PROJECT_ID: ${{ secrets.MODRINTH_PROJECT_ID }}
           REPAIR_MODE: ${{ inputs.mode }}
           AI_ASSETS: ${{ inputs.ai_assets }}
+          PROJECT_SLUG: ${{ inputs.project_slug }}
+          PROJECT_TITLE: ${{ inputs.project_title }}
           SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
         run: python3 .github/scripts/repair_modrinth_metadata.py

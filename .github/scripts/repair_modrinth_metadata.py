@@ -11,7 +11,6 @@ import urllib.request
 
 
 SOURCE = "https://github.com/Yunitrish006006/TotemCore"
-SLUG = "totemcore-yunitrish"
 NOTE = "AI tools assisted with code and text during development."
 
 
@@ -128,13 +127,15 @@ def main():
     if mode == "inspect":
         return
     verify_identity(project)
+    desired_slug = os.environ.get("PROJECT_SLUG", "").strip() or project["slug"]
+    desired_title = os.environ.get("PROJECT_TITLE", "").strip() or project["title"]
     desired = ai_disclosure(before, os.environ.get("AI_ASSETS", "false") == "true")
-    api("v2", path, "PATCH", {"slug": SLUG, "issues_url": SOURCE + "/issues"})
+    api("v2", path, "PATCH", {"slug": desired_slug, "title": desired_title, "issues_url": SOURCE + "/issues"})
     api("v3", path + "/disclosures", "PATCH", {"set": [desired], "remove": []})
     project = api("v2", path)
     after = disclosures(path)
     verify_identity(project)
-    if project.get("slug") != SLUG or project.get("issues_url") != SOURCE + "/issues":
+    if project.get("slug") != desired_slug or project.get("title") != desired_title or project.get("issues_url") != SOURCE + "/issues":
         raise RuntimeError("Project metadata verification failed")
     actual_ai = [item for item in after if item.get("type") == "ai_content" and not item.get("deleted_at")]
     if len(actual_ai) != 1 or set(actual_ai[0].get("uses", [])) != set(desired["uses"]) or actual_ai[0].get("note") != desired["note"]:
