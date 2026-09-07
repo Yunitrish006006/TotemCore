@@ -1,4 +1,4 @@
-"""Audit or apply reviewed metadata for the other active Totem projects."""
+"""Audit or apply reviewed metadata for active Totem projects."""
 
 import hashlib
 import json
@@ -28,7 +28,7 @@ def api(*args, **kwargs):
 
 
 MODULES = (
-    "TotemAlchemy", "TotemAutomata", "TotemDiscordBridge", "TotemEnchanting",
+    "TotemCore", "TotemAlchemy", "TotemAutomata", "TotemDiscordBridge", "TotemEnchanting",
     "TotemExcavation", "TotemLocksmith", "TotemNexus", "TotemRemnant",
     "TotemVanillaTweaks", "TotemVillagers",
 )
