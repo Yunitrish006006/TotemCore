@@ -8,11 +8,12 @@ primitives and version negotiation belong here.
 `social` is the canonical Totem-wide friendship contract. Core owns the
 server-authoritative friendship and pending-invitation data plus the stable
 `TotemFriendshipApi`. Feature modules must query or mutate friendships through
-that API instead of mirroring social state. The persisted storage identifier
-remains `deadrecall:space_friends` in Core 0.7.x so worlds created by older
-Nexus builds retain existing friendships and invitations without a destructive
-copy migration. Nexus may provide friend-management UI and use friendships for
-teleportation; Locksmith and other modules may consume the same Core relation.
+that API instead of mirroring social state. New worlds persist friendship data
+at `totem:space_friends`; Core performs one legacy read from
+`deadrecall:space_friends` only when canonical data is absent, then writes a
+distinct canonical copy without rewriting the legacy entry. Nexus may provide
+friend-management UI and use friendships for teleportation; Locksmith and
+other modules may consume the same Core relation.
 
 `death.DeathBackpackNodeLifecycle` is an optional v1 contract: a Remnant-like
 module may publish a backpack binding while a Nexus-like module supplies the
@@ -23,6 +24,14 @@ module may authorize one Server-owned ItemStack for death retention, while the
 death-owning module remains solely responsible for transactional extraction,
 persistence and exactly-once respawn restoration. Authorization must not
 itself mutate or copy the item.
+
+`migration.LegacyNbtMigrationRegistry` is the one-way pre-decode migration
+seam for feature-owned registry IDs in persisted data. A feature registers an
+idempotent, narrowly allow-listed `LegacyNbtMigration`; Core calls it while
+chunk, block-entity, player and detached-entity data is still raw NBT, before
+the relevant registry codecs resolve IDs. The migration must leave other
+features' legacy values untouched and must not create a runtime registry alias.
+The ordinary next save then persists canonical values only.
 
 `gamerule.TotemGameRuleCategories` owns the stable `totem:rules` vanilla
 `GameRuleCategory`. Feature modules register their own rules against this one

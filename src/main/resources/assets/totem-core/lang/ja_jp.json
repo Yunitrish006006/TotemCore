@@ -9,8 +9,6 @@
   "book.totem.manual.getting_started.page.3": "章の入手元 2/2\n\n下のアイテムアイコンは、ゲーム内で操作するブロックです。",
   "book.totem.manual.getting_started.page.4": "まだ手引書がない場合\n\n上に表示された入手元ブロックなら、普通の本でも使用できます。CoreはTotem手引書を作成し、まず入門章を記録してから、そのモジュールの章を追加します。",
   "book.totem.manual.getting_started.page.5": "閲覧と更新\n\n入手した章はすべて一冊の手引書に残ります。目次で章の間を移動してください。Coreはモジュールまたは内容の更新後に記録済みの章を更新するため、手引書を分ける必要はありません。",
-  "disconnect.totem_core.version_handshake_required": "DeadRecallでは、クライアントとサーバーで同じモジュールのバージョンが必要です。",
-  "disconnect.totem_core.module_version_mismatch": "TOTEMモジュールのバージョンがサーバーと一致しません:\n%s",
   "item.totem.manual": "Totem手引書",
   "button.totem.manual.contents": "目次",
   "button.totem.manual.split": "分割",

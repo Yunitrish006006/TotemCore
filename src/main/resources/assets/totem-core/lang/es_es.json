@@ -9,8 +9,6 @@
   "book.totem.manual.getting_started.page.3": "FUENTES DE CAPÍTULOS 2/2\n\nLos iconos de objetos de abajo son los bloques del juego con los que interactúas.",
   "book.totem.manual.getting_started.page.4": "AÚN NO TIENES MANUAL\n\nUn libro normal también sirve en cualquiera de los bloques de origen mostrados arriba. Core crea el Manual Totem, registra primero el capítulo inicial y después añade el capítulo de ese módulo.",
   "book.totem.manual.getting_started.page.5": "LECTURA Y ACTUALIZACIONES\n\nTodos los capítulos obtenidos permanecen en un solo manual; usa Contenido para moverte entre ellos. Core actualiza los capítulos registrados tras actualizaciones de módulos o contenido, por lo que nunca hace falta dividir el manual.",
-  "disconnect.totem_core.version_handshake_required": "DeadRecall requiere las mismas versiones de módulo en el cliente y el servidor.",
-  "disconnect.totem_core.module_version_mismatch": "Las versiones de los módulos TOTEM no coinciden con el servidor:\n%s",
   "item.totem.manual": "Manual Totem",
   "button.totem.manual.contents": "Contenido",
   "button.totem.manual.split": "Dividir",

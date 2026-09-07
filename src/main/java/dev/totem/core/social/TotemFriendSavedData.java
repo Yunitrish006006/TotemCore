@@ -8,24 +8,28 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Canonical Totem-wide friendship storage.
  *
- * <p>The persisted identifier intentionally remains {@code deadrecall:space_friends}
- * so worlds created by pre-Core-0.7 Nexus builds load the exact same friendships
- * and pending invitations without a destructive copy migration.</p>
+ * <p>New worlds persist this data at {@code totem:space_friends}. The former
+ * {@code deadrecall:space_friends} key is accepted only by the explicit,
+ * one-way compatibility loader so existing worlds migrate without losing
+ * friendships or pending invitations.</p>
  */
 public final class TotemFriendSavedData extends SavedData {
     public static final int DATA_VERSION = 1;
-    public static final Identifier STORAGE_ID = Identifier.fromNamespaceAndPath("deadrecall", "space_friends");
+    public static final Identifier STORAGE_ID = Identifier.fromNamespaceAndPath("totem", "space_friends");
+    private static final Identifier LEGACY_STORAGE_ID = Identifier.fromNamespaceAndPath("deadrecall", "space_friends");
 
     private static final Codec<Friendship> FRIENDSHIP_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             UUIDUtil.CODEC.fieldOf("first").forGetter(Friendship::first),
@@ -50,6 +54,17 @@ public final class TotemFriendSavedData extends SavedData {
             DataFixTypes.SAVED_DATA_COMMAND_STORAGE
     );
 
+    /**
+     * Read-only decoder for worlds written before friendship ownership moved to
+     * TotemCore. It is deliberately not exposed as a normal storage type.
+     */
+    static final SavedDataType<TotemFriendSavedData> LEGACY_COMPATIBILITY_TYPE = new SavedDataType<>(
+            LEGACY_STORAGE_ID,
+            TotemFriendSavedData::new,
+            CODEC,
+            DataFixTypes.SAVED_DATA_COMMAND_STORAGE
+    );
+
     private final int dataVersion;
     private final Set<Friendship> friendships = new HashSet<>();
     private final Set<PendingFriendInvite> pendingInvites = new HashSet<>();
@@ -62,6 +77,35 @@ public final class TotemFriendSavedData extends SavedData {
         this.dataVersion = Math.max(dataVersion, DATA_VERSION);
         this.friendships.addAll(friendships);
         this.pendingInvites.addAll(pendingInvites);
+    }
+
+    /**
+     * Returns the canonical friendship data for one world.
+     *
+     * <p>If the canonical file is absent, this performs the sole legacy read:
+     * it copies {@code deadrecall:space_friends} into a distinct canonical
+     * instance, registers that instance under {@link #TYPE}, and marks only
+     * the canonical entry dirty. A crash before the save leaves the untouched
+     * legacy file available for a later retry. If both files exist, the
+     * canonical file wins without merging or rewriting the legacy file.</p>
+     */
+    public static synchronized TotemFriendSavedData loadCanonical(SavedDataStorage storage) {
+        Objects.requireNonNull(storage, "storage");
+
+        TotemFriendSavedData canonical = storage.get(TYPE);
+        if (canonical != null) {
+            return canonical;
+        }
+
+        TotemFriendSavedData legacy = storage.get(LEGACY_COMPATIBILITY_TYPE);
+        if (legacy == null) {
+            return storage.computeIfAbsent(TYPE);
+        }
+
+        TotemFriendSavedData migrated = legacy.copyForCanonicalStorage();
+        storage.set(TYPE, migrated);
+        migrated.setDirty();
+        return migrated;
     }
 
     public boolean areFriends(UUID first, UUID second) {
@@ -140,6 +184,10 @@ public final class TotemFriendSavedData extends SavedData {
 
     private int dataVersion() {
         return dataVersion;
+    }
+
+    private TotemFriendSavedData copyForCanonicalStorage() {
+        return new TotemFriendSavedData(dataVersion, friendshipList(), pendingInviteList());
     }
 
     private List<Friendship> friendshipList() {

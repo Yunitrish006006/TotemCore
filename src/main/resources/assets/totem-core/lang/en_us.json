@@ -9,8 +9,6 @@
   "book.totem.manual.getting_started.page.3": "CHAPTER SOURCES 2/2\n\nThe item icons below are the in-game blocks you interact with.",
   "book.totem.manual.getting_started.page.4": "NO MANUAL YET\n\nA plain book also works on any source block shown above. Core creates the Totem Manual, records the starter chapter first, then adds that module's chapter.",
   "book.totem.manual.getting_started.page.5": "READING & UPDATES\n\nAll acquired chapters stay in one manual; use Contents to jump between them. Core refreshes recorded chapters after module or content updates, so the manual never needs to be split.",
-  "disconnect.totem_core.version_handshake_required": "DeadRecall requires the same module versions on the client and server.",
-  "disconnect.totem_core.module_version_mismatch": "TOTEM module versions do not match the server:\n%s",
   "item.totem.manual": "Totem Manual",
   "button.totem.manual.contents": "Contents",
   "button.totem.manual.split": "Split",

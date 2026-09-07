@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 /** Appends module-owned chapters to the player's existing shared Totem Manual. */
 public final class TotemManualChapterRecorder {
     private static final Identifier KNOWLEDGE_ADVANCEMENT =
-            Identifier.fromNamespaceAndPath("deadrecall", "knowledge_is_power");
+            Identifier.fromNamespaceAndPath("totem", "knowledge_is_power");
 
     private TotemManualChapterRecorder() {
     }

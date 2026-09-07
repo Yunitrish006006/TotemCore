@@ -9,8 +9,6 @@
   "book.totem.manual.getting_started.page.3": "章節來源 2/2\n\n下方物品圖示就是需要互動的遊戲內方塊。",
   "book.totem.manual.getting_started.page.4": "沒有手冊時\n\n普通書本也可以直接對前面列出的來源方塊使用。Core 會建立 Totem 手冊、先加入基礎章節，再把對應模組章節記錄進去。",
   "book.totem.manual.getting_started.page.5": "閱讀與更新\n\n所有已取得章節都留在同一本手冊；按「目錄」可快速跳轉。安裝新模組或內容更新後，已記錄的章節會由 Core 刷新，不需要拆成多本手冊。",
-  "disconnect.totem_core.version_handshake_required": "DeadRecall 要求 Client 與 Server 使用完全相同的模組版本。",
-  "disconnect.totem_core.module_version_mismatch": "TOTEM 模組版本與伺服器不一致：\n%s",
   "item.totem.manual": "Totem 手冊",
   "button.totem.manual.contents": "目錄",
   "button.totem.manual.split": "拆分",

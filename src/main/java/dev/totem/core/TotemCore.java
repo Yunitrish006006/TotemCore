@@ -3,7 +3,7 @@ package dev.totem.core;
 import dev.totem.core.api.v1.gamerule.TotemGameRuleCategories;
 import dev.totem.core.api.v1.manual.TotemManualOnboarding;
 import dev.totem.core.migration.LegacyAliasBootstrap;
-import dev.totem.core.network.ExactModuleVersionGate;
+import dev.totem.core.migration.LegacyAdvancementMigration;
 import dev.totem.core.network.TotemManualPayloadRegistration;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -17,11 +17,11 @@ public final class TotemCore implements ModInitializer {
     public void onInitialize() {
         TotemGameRuleCategories.register();
         LegacyAliasBootstrap.register();
-        ExactModuleVersionGate.initializeServer();
+        LegacyAdvancementMigration.register();
         TotemManualPayloadRegistration.register();
         TotemManualOnboarding.register();
         LOGGER.info(
-                "TotemCore API {}.{} initialized with guided manual onboarding and {} legacy DeadRecall aliases",
+                "TotemCore API {}.{} initialized with guided manual onboarding and {} legacy item aliases",
                 1,
                 1,
                 LegacyAliasBootstrap.aliasCount()

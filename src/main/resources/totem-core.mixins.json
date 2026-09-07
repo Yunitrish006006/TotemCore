@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.totem.core.mixin.migration",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "EntityStorageMixin",
+    "PlayerDataStorageMixin",
+    "SerializableChunkDataMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -11,6 +11,7 @@
     "client": ["dev.totem.core.client.TotemCoreClient"]
   },
   "mixins": [
+    "totem-core.mixins.json",
     {
       "config": "totem-core.client.mixins.json",
       "environment": "client"

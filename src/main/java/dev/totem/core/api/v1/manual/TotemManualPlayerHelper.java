@@ -18,10 +18,10 @@ import java.util.function.Predicate;
 /** Server-owned acquisition, migration, consolidation and inventory refresh operations. */
 public final class TotemManualPlayerHelper {
     private static final Identifier KNOWLEDGE_ADVANCEMENT =
-            Identifier.fromNamespaceAndPath("deadrecall", "knowledge_is_power");
+            Identifier.fromNamespaceAndPath("totem", "knowledge_is_power");
     private static final String KNOWLEDGE_CRITERION = "has_manual";
     private static final Identifier BASIC_ADVANCEMENT =
-            Identifier.fromNamespaceAndPath("deadrecall", "root");
+            Identifier.fromNamespaceAndPath("totem", "root");
     private static final String BASIC_CRITERION = "received_basic_manual";
 
     private TotemManualPlayerHelper() {

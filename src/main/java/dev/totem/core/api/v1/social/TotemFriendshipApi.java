@@ -49,6 +49,6 @@ public final class TotemFriendshipApi {
 
     private static TotemFriendSavedData data(MinecraftServer server) {
         Objects.requireNonNull(server, "server");
-        return server.overworld().getDataStorage().computeIfAbsent(TotemFriendSavedData.TYPE);
+        return TotemFriendSavedData.loadCanonical(server.overworld().getDataStorage());
     }
 }

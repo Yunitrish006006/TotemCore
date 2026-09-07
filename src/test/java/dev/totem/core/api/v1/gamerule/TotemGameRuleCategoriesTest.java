@@ -32,7 +32,7 @@ class TotemGameRuleCategoriesTest {
     @Test
     void localeResourcesShipWithMatchingKeysAndFormatPlaceholders() {
         assertLocaleParity("totem-core");
-        assertLocaleParity("deadrecall");
+        assertLocaleParity("totem");
 
         JsonObject traditionalChinese = language("totem-core", "zh_tw");
         JsonObject spanish = language("totem-core", "es_es");
