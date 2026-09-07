@@ -1,0 +1,38 @@
+name: Audit Modrinth suite metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inspect other active Totem projects without changing remote state
+        required: true
+        default: inspect
+        type: choice
+        options: [inspect]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: totem-suite-modrinth-metadata
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Modrinth suite
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          SUITE_MODE: ${{ inputs.mode }}
+        run: python3 .github/scripts/audit_modrinth_suite.py
+      - name: Preserve audit snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modrinth-suite-audit
+          path: ${{ runner.temp }}/modrinth-suite-audit.json
+          retention-days: 7
+          if-no-files-found: warn
