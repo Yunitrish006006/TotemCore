@@ -1,0 +1,43 @@
+name: Repair Modrinth metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inspect or repair project metadata without publishing versions
+        required: true
+        default: inspect
+        type: choice
+        options: [inspect, apply]
+      ai_assets:
+        description: Also disclose AI-assisted visual or audio assets
+        required: true
+        default: false
+        type: boolean
+      submit_for_review:
+        description: Request review after applying and verifying all metadata
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: totem-core-modrinth-metadata
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect or repair Modrinth metadata
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ secrets.MODRINTH_PROJECT_ID }}
+          REPAIR_MODE: ${{ inputs.mode }}
+          AI_ASSETS: ${{ inputs.ai_assets }}
+          SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
+        run: python3 .github/scripts/repair_modrinth_metadata.py
