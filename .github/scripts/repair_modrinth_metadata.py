@@ -103,7 +103,7 @@ def ai_disclosure(existing, include_assets):
         if use not in uses:
             uses.append(use)
     note = current.get("note") or ""
-    additions = [NOTE]
+    additions = [NOTE, "AI assistance also includes translations and documentation."]
     if include_assets:
         additions.append("The icon uses hand-drawn base artwork with AI-assisted layout.")
     for addition in additions:
