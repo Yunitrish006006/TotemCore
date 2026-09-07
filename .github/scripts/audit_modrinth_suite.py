@@ -207,6 +207,10 @@ def inspect():
             report["errors"].append(module)
             print(json.dumps({"module": module, "inspection": "failed"}), flush=True)
     report["missing_modules"] = sorted(set(MODULES) - found)
+    core = [p for p in projects if p.get("source_url") == "https://github.com/Yunitrish006006/TotemCore"]
+    if len(core) == 1:
+        report["core_versions"] = [{key: version.get(key) for key in ("id", "version_number", "project_id")}
+                                   for version in api("v2", project_path(core[0]["id"]) + "/version")]
     return report
 
 
