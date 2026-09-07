@@ -5,8 +5,26 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
 
-from repair_modrinth_metadata import ApiError, api, project_path
+from repair_modrinth_metadata import ApiError, api as request_api, project_path
+
+
+_last_request = 0.0
+
+
+def api(*args, **kwargs):
+    """Pace the historical-version audit and retry rate limits without logging credentials."""
+    global _last_request
+    for attempt in range(3):
+        time.sleep(max(0.0, 0.3 - (time.monotonic() - _last_request)))
+        _last_request = time.monotonic()
+        try:
+            return request_api(*args, **kwargs)
+        except ApiError as error:
+            if "HTTP 429" not in str(error) or attempt == 2:
+                raise
+            time.sleep(30)
 
 
 MODULES = (
