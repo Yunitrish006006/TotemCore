@@ -18,6 +18,8 @@ public interface DeathBackpackNodeLifecycle {
      * chunks to search for backpack entities.</p>
      */
     default void bind(ServerLevel level, UUID nodeId, UUID backpackEntityId) { }
+    /** Reports only a live bound backpack's server-owned location; older providers may ignore it. */
+    default void moved(ServerLevel level, UUID nodeId, UUID backpackEntityId, UUID ownerId, BlockPos position) { }
     void rollback(ServerPlayer owner, ServerLevel level, UUID nodeId);
     boolean recover(ServerPlayer recoveringPlayer, UUID nodeId);
 
