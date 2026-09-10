@@ -115,7 +115,8 @@ jobs:
           MODRINTH_PROJECT_ID: ${{ secrets.MODRINTH_PROJECT_ID }}
           MODULE_ID: totem-core
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+          trap 'echo "::error::Publication failed at script line ${LINENO}"' ERR
           mod_version="$(sed -n 's/^mod_version=//p' gradle.properties)"
           archive_name="$(sed -n 's/^archives_base_name=//p' gradle.properties)"
           minecraft_version="$(sed -n 's/^minecraft_version=//p' gradle.properties)"
@@ -156,7 +157,8 @@ jobs:
           fi
           project_id="$(jq -er '.id' /tmp/project.json)"
           sha512="$(sha512sum "$artifact" | awk '{print $1}')"
-          test "$sha512" = "$(jq -er .sha512 ".github/staging/release-validation-${mod_version}.json")"
+          expected_sha="$(jq -er .sha512 ".github/staging/release-validation-${mod_version}.json")"
+          test "$sha512" = "$expected_sha" || { echo "Validated JAR mismatch: expected ${expected_sha}, actual ${sha512}" >&2; exit 1; }
           if [[ "$DRY_RUN" == 'true' ]]; then
             echo "Dry run passed for ${MODULE_ID} ${mod_version}."
             echo "version=${mod_version}" >> "$GITHUB_OUTPUT"
@@ -176,16 +178,34 @@ jobs:
           else
             changelog="$(cat ".github/staging/modrinth-changelog-${mod_version}.md")"
             payload="$(jq -nc --arg name "${MODULE_ID} ${mod_version}" --arg version "$mod_version" --arg changelog "$changelog" --arg project_id "$project_id" --arg minecraft "$minecraft_version" '{name:$name,version_number:$version,changelog:$changelog,dependencies:[{project_id:"P7dR8mSH",dependency_type:"required"}],game_versions:[$minecraft],version_type:"release",loaders:["fabric"],featured:false,status:"listed",project_id:$project_id,file_parts:["primary"],primary_file:"primary"}')"
-            curl --fail-with-body "${args[@]}" -X POST "$api/version" -F "data=${payload};type=application/json" -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive" >/tmp/version.json
+            printf '%s\n' "$payload" >/tmp/version-create.json
+            curl --fail-with-body "${args[@]}" -X POST "$api/version" -F 'data=</tmp/version-create.json;type=application/json' -F "primary=@${artifact};filename=$(basename "$artifact");type=application/java-archive" >/tmp/version.json
             version_id="$(jq -er '.id' /tmp/version.json)"
           fi
 
           curl --fail-with-body "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
+          jq '{id,version_number,game_versions,loaders,files:[.files[]|{filename,primary,sha512:.hashes.sha512}]}' /tmp/remote.json
+          jq -e --arg project "$project_id" --arg version "$mod_version" --arg sha "$sha512" '.project_id==$project and .version_number==$version and (([.files[]|select(.primary==true)][0]//.files[0]).hashes.sha512==$sha)' /tmp/remote.json >/dev/null
+          if ! jq -e --arg mc "$minecraft_version" '.game_versions==[$mc] and any(.dependencies[]; .project_id=="P7dR8mSH" and .dependency_type=="required")' /tmp/remote.json >/dev/null; then
+            jq -n --arg mc "$minecraft_version" --rawfile changelog ".github/staging/modrinth-changelog-${mod_version}.md" '{game_versions:[$mc],changelog:$changelog,dependencies:[{project_id:"P7dR8mSH",dependency_type:"required"}]}' >/tmp/version-metadata.json
+            modrinth_request /tmp/version-metadata-response.json -X PATCH -H 'Content-Type: application/json' --data-binary @/tmp/version-metadata.json "$api/version/${version_id}"
+            modrinth_request /tmp/remote.json "$api/version/${version_id}"
+          fi
           jq -e --arg project "$project_id" --arg version "$mod_version" --arg minecraft "$minecraft_version" --arg filename "$(basename "$artifact")" --arg sha "$sha512" '.project_id == $project and .version_number == $version and .game_versions == [$minecraft] and .loaders == ["fabric"] and (([.files[] | select(.primary == true)][0] // .files[0]).filename == $filename) and (([.files[] | select(.primary == true)][0] // .files[0]).hashes.sha512 == $sha)' /tmp/remote.json >/dev/null
           echo "version=${mod_version}" >> "$GITHUB_OUTPUT"
           echo "project_id=${project_id}" >> "$GITHUB_OUTPUT"
           echo "version_id=${version_id}" >> "$GITHUB_OUTPUT"
           echo "sha512=${sha512}" >> "$GITHUB_OUTPUT"
+
+      - name: Retain release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-release-${{ github.sha }}
+          path: |
+            build/libs/totem-core-*.jar
+            /tmp/remote.json
+          if-no-files-found: error
 
       - name: Submit project for public review
         if: steps.release.outputs.should_publish == 'true' && steps.release.outputs.dry_run == 'false'
