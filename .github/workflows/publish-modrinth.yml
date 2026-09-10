@@ -186,12 +186,13 @@ jobs:
           curl --fail-with-body "${args[@]}" "$api/version/${version_id}" >/tmp/remote.json
           jq '{id,version_number,game_versions,loaders,files:[.files[]|{filename,primary,sha512:.hashes.sha512}]}' /tmp/remote.json
           jq -e --arg project "$project_id" --arg version "$mod_version" --arg sha "$sha512" '.project_id==$project and .version_number==$version and (([.files[]|select(.primary==true)][0]//.files[0]).hashes.sha512==$sha)' /tmp/remote.json >/dev/null
-          if ! jq -e --arg mc "$minecraft_version" '.game_versions==[$mc] and any(.dependencies[]; .project_id=="P7dR8mSH" and .dependency_type=="required")' /tmp/remote.json >/dev/null; then
+          if ! jq -e --arg mc "$minecraft_version" --rawfile notes ".github/staging/modrinth-changelog-${mod_version}.md" '.game_versions==[$mc] and (.dependencies|length)==1 and any(.dependencies[]; .project_id=="P7dR8mSH" and .version_id==null and .file_name==null and .dependency_type=="required") and ((.changelog|sub("\n+$";""))==($notes|sub("\n+$";"")))' /tmp/remote.json >/dev/null; then
             jq -n --arg mc "$minecraft_version" --rawfile changelog ".github/staging/modrinth-changelog-${mod_version}.md" '{game_versions:[$mc],changelog:$changelog,dependencies:[{project_id:"P7dR8mSH",dependency_type:"required"}]}' >/tmp/version-metadata.json
             modrinth_request /tmp/version-metadata-response.json -X PATCH -H 'Content-Type: application/json' --data-binary @/tmp/version-metadata.json "$api/version/${version_id}"
             modrinth_request /tmp/remote.json "$api/version/${version_id}"
           fi
           jq -e --arg project "$project_id" --arg version "$mod_version" --arg minecraft "$minecraft_version" --arg filename "$(basename "$artifact")" --arg sha "$sha512" '.project_id == $project and .version_number == $version and .game_versions == [$minecraft] and .loaders == ["fabric"] and (([.files[] | select(.primary == true)][0] // .files[0]).filename == $filename) and (([.files[] | select(.primary == true)][0] // .files[0]).hashes.sha512 == $sha)' /tmp/remote.json >/dev/null
+          jq -e --arg mc "$minecraft_version" --rawfile notes ".github/staging/modrinth-changelog-${mod_version}.md" '.game_versions==[$mc] and (.dependencies|length)==1 and any(.dependencies[]; .project_id=="P7dR8mSH" and .version_id==null and .file_name==null and .dependency_type=="required") and ((.changelog|sub("\n+$";""))==($notes|sub("\n+$";"")))' /tmp/remote.json >/dev/null
           echo "version=${mod_version}" >> "$GITHUB_OUTPUT"
           echo "project_id=${project_id}" >> "$GITHUB_OUTPUT"
           echo "version_id=${version_id}" >> "$GITHUB_OUTPUT"
