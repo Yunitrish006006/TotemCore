@@ -7,11 +7,10 @@
       "expected": {
         "title": "TotemRemnant",
         "slug": "totem-remnant",
-        "description": "Carry upgradeable backpacks, recover eligible items after death, and control portable-container nesting.",
-        "body_sha256": "b3c7a920b84eb708c5dfd706fca47de94a6a143863c49ea84e64a1c87de41c85"
+        "description": "Carry upgradeable backpacks, combine protective modules, recover eligible items after death, and crystallize Echo Shards from sculk.",
+        "body_sha256": "e3e948c65b9df1969d77e20bad3cca97b35af9a76f51a0d8a0164769bcd54ed9"
       },
       "changes": {
-        "description": "Carry upgradeable backpacks, combine protective modules, recover eligible items after death, and crystallize Echo Shards from sculk.",
         "body_file": "descriptions/TotemRemnant.md"
       }
     },
@@ -97,11 +96,10 @@
       "expected": {
         "title": "TotemLibrary",
         "slug": "totemlibrary",
-        "description": "Shared APIs, unified manuals, exact client/server version checks, events, and legacy ID migration for the Totem ecosystem.",
-        "body_sha256": "191a25a5afaa011042bb5910d8d9e7e1cf0e50a36d8be522e84d9ddfc515b4ac"
+        "description": "Shared foundation for Totem mods: one growing in-game manual, persistent friendships, optional integrations, and reusable server/client APIs.",
+        "body_sha256": "b85b1bc4a273f4cf7c3d54c62baffb41b722f07da6aee1db1875b8666d47df11"
       },
       "changes": {
-        "description": "Shared foundation for Totem mods: one growing in-game manual, persistent friendships, optional integrations, and reusable server/client APIs.",
         "body_file": "descriptions/TotemCore.md"
       }
     },
@@ -157,11 +155,10 @@
       "expected": {
         "title": "TotemNexus",
         "slug": "totem-nexus",
-        "description": "Build lodestone travel networks with material-based structures, destination lists, maps, and access controls.",
-        "body_sha256": "c14c3ba84131d4fea1ebf92900dabd4313a05277d15ba4bb57cdf56aa3c36bb8"
+        "description": "Build lodestone travel networks with maps, shared destinations, safe teleport checks, optional death recovery, and configurable distributed spawns.",
+        "body_sha256": "ea201cc322fb62f8463b9e39be53694d5bb83c12ee09ed5a4fbde639b6e13244"
       },
       "changes": {
-        "description": "Build lodestone travel networks with maps, shared destinations, safe teleport checks, optional death recovery, and configurable distributed spawns.",
         "body_file": "descriptions/TotemNexus.md"
       }
     }

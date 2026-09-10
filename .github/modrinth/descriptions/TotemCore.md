@@ -15,7 +15,7 @@ The shared foundation for the Totem mod family. Install it when a Totem gameplay
 
 ## Installation
 
-For the current 0.7.18 release: Minecraft 26.2, Fabric Loader 0.19.3 or newer, Java 25 or newer, and Fabric API are required. Install the compatible library wherever the dependent module requires it, normally on both client and server.
+For the current 0.7.19 release: Minecraft 26.2, Fabric Loader 0.19.3 or newer, Java 25 or newer, and Fabric API are required. Install the compatible library wherever the dependent module requires it, normally on both client and server.
 
 Check the Dependencies section of your selected gameplay release. Older releases can require an exact older Core version. Do not install two JARs providing the same mod ID.
 
@@ -42,6 +42,6 @@ TotemLibrary 是 Totem 系列的共用基礎函式庫，負責讓各玩法模組
 
 ### 安裝與定位
 
-目前 0.7.18 需要 Minecraft 26.2、Fabric Loader 0.19.3 以上、Java 25 以上及 Fabric API。依所選玩法模組的需求安裝，通常客戶端與伺服器都需要。
+目前 0.7.19 需要 Minecraft 26.2、Fabric Loader 0.19.3 以上、Java 25 以上及 Fabric API。依所選玩法模組的需求安裝，通常客戶端與伺服器都需要。
 
 這不是獨立的背包、傳送或自動化模組，也不會自動安裝其他玩法。請依各版本 Dependencies 選擇相容的 Core；舊版可能要求指定版本，並避免重複安裝相同模組 ID。

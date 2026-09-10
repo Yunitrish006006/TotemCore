@@ -31,15 +31,15 @@ Use an Amethyst Shard on a Sculk block to obtain an Echo Shard. The consumed Scu
 
 With death backpacks enabled and keepInventory off, eligible contents are captured in a red death backpack. It retains ownership, has a locator beam, resists ordinary damage and despawning, and is rescued from below the world.
 
-A death backpack holds up to 54 stacks; overflow drops normally. Portable containers can remain separate under nesting rules, and Curse of Vanishing still takes priority. Empty the backpack and close it to finish recovery.
+A death backpack holds up to 54 stacks; overflow drops normally. Portable containers can remain separate under nesting rules, and Curse of Vanishing still takes priority. Successful owner pickup into the inventory completes the matching Nexus recovery node. Full inventories and foreign pickup do not count; emptying and closing an already carried backpack remains supported.
 
 World rules control generation, owner-only recovery restrictions, and the additional nesting policy. Existing invalid nested contents can be removed without silently deleting them.
 
 ## Optional integrations and installation
 
-TotemNexus can create temporary death destinations and support retention of one eligible travel item. Trinkets Updated provides supported accessory-inventory capture. These integrations are optional.
+TotemNexus 0.3.19 can follow the moving backpack for close death destinations and support retention of one eligible travel item. Trinkets Updated provides supported accessory-inventory capture. These integrations are optional.
 
-Use a Book or Totem Manual on a Smithing Table to record the guide. Current release 0.2.21 requires Minecraft 26.2, Fabric Loader 0.19.3+, Java 25+, Fabric API, and [TotemLibrary / TotemCore](https://modrinth.com/mod/totemlibrary) >=0.7.18 and <0.8.0 on both client and server.
+Use a Book or Totem Manual on a Smithing Table to record the guide. Current release 0.2.24 requires Minecraft 26.2, Fabric Loader 0.19.3+, Java 25+, Fabric API, and [TotemLibrary / TotemCore](https://modrinth.com/mod/totemlibrary) >=0.7.19 and <0.8.0 on both client and server.
 
 [Recipes and detailed guide](https://github.com/Yunitrish006006/TotemRemnant) · [Report an issue](https://github.com/Yunitrish006006/TotemRemnant/issues)
 
@@ -65,12 +65,12 @@ Use a Book or Totem Manual on a Smithing Table to record the guide. Current rele
 
 拿紫水晶碎片對 Sculk 方塊使用，可取得回聲碎片；Sculk 轉為深板岩，不再額外釋放經驗。感測器、尖嘯體、觸媒與菌脈不適用。
 
-開啟死亡背包且 keepInventory 關閉時，符合條件的物品會收進紅色死亡背包，保留歸屬並顯示定位光柱，抵抗一般損傷、自然消失與掉入虛空。容量最多 54 組，超量仍正常掉落；容器可能依巢狀規則分開掉落，消失詛咒仍優先。取空並關閉後完成回收。
+開啟死亡背包且 keepInventory 關閉時，符合條件的物品會收進紅色死亡背包，保留歸屬並顯示定位光柱，抵抗一般損傷、自然消失與掉入虛空。容量最多 54 組，超量仍正常掉落；容器可能依巢狀規則分開掉落，消失詛咒仍優先。成功拾取至擁有者物品欄後完成對應 Nexus 節點回收；物品欄已滿或他人拾取不算成功，已攜帶背包仍支援取空並關閉的回收流程。
 
 管理員可調整死亡背包生成、主人限制與額外巢狀規則。既有不合法巢狀內容可取出，不會被直接刪除。
 
 ### 整合與需求
 
-選配 Nexus 提供死亡回收點及一件有效傳送介面的死亡保留；Trinkets Updated 提供支援的飾品物品欄擷取。拿書或手冊對鍛造台使用可取得教學。
+選配 Nexus 0.3.19 提供追蹤移動背包的近距離死亡回收點及一件有效傳送介面的死亡保留；Trinkets Updated 提供支援的飾品物品欄擷取。拿書或手冊對鍛造台使用可取得教學。
 
-目前 0.2.21 需要 Minecraft 26.2、Fabric Loader 0.19.3+、Java 25+、Fabric API，以及 TotemLibrary／TotemCore >=0.7.18、<0.8.0，雙端皆需安裝。
+目前 0.2.24 需要 Minecraft 26.2、Fabric Loader 0.19.3+、Java 25+、Fabric API，以及 TotemLibrary／TotemCore >=0.7.19、<0.8.0，雙端皆需安裝。
