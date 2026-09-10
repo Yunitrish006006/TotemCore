@@ -31,7 +31,7 @@ Use an Amethyst Shard on a Sculk block to obtain an Echo Shard. The consumed Scu
 
 With death backpacks enabled and keepInventory off, eligible contents are captured in a red death backpack. It retains ownership, has a locator beam, resists ordinary damage and despawning, and is rescued from below the world.
 
-A death backpack holds up to 54 stacks; overflow drops normally. Portable containers can remain separate under nesting rules, and Curse of Vanishing still takes priority. Successful owner pickup into the inventory completes the matching Nexus recovery node. Full inventories and foreign pickup do not count; emptying and closing an already carried backpack remains supported.
+A death backpack holds up to 54 stacks; overflow drops normally. Portable containers can remain separate under nesting rules, and Curse of Vanishing still takes priority. Successful pickup into the inventory completes the matching Nexus recovery node. Full inventories do not count; foreign pickup is rejected when the owner-only rule is enabled; emptying and closing an already carried backpack remains supported.
 
 World rules control generation, owner-only recovery restrictions, and the additional nesting policy. Existing invalid nested contents can be removed without silently deleting them.
 
@@ -65,7 +65,7 @@ Use a Book or Totem Manual on a Smithing Table to record the guide. Current rele
 
 拿紫水晶碎片對 Sculk 方塊使用，可取得回聲碎片；Sculk 轉為深板岩，不再額外釋放經驗。感測器、尖嘯體、觸媒與菌脈不適用。
 
-開啟死亡背包且 keepInventory 關閉時，符合條件的物品會收進紅色死亡背包，保留歸屬並顯示定位光柱，抵抗一般損傷、自然消失與掉入虛空。容量最多 54 組，超量仍正常掉落；容器可能依巢狀規則分開掉落，消失詛咒仍優先。成功拾取至擁有者物品欄後完成對應 Nexus 節點回收；物品欄已滿或他人拾取不算成功，已攜帶背包仍支援取空並關閉的回收流程。
+開啟死亡背包且 keepInventory 關閉時，符合條件的物品會收進紅色死亡背包，保留歸屬並顯示定位光柱，抵抗一般損傷、自然消失與掉入虛空。容量最多 54 組，超量仍正常掉落；容器可能依巢狀規則分開掉落，消失詛咒仍優先。成功拾取至物品欄後完成對應 Nexus 節點回收；物品欄已滿不算成功，啟用主人限定規則時會拒絕他人拾取，已攜帶背包仍支援取空並關閉的回收流程。
 
 管理員可調整死亡背包生成、主人限制與額外巢狀規則。既有不合法巢狀內容可取出，不會被直接刪除。
 

@@ -24,7 +24,7 @@ Preparation can be interrupted by damage, movement, changing the held interface,
 
 ## Recovery and world options
 
-With TotemRemnant installed, death backpacks can receive temporary recovery destinations. With Remnant 0.2.24, death teleport follows the exact moving backpack and prefers a reachable landing 2–4 blocks away, at most 6 horizontal blocks. Nexus grants one Phasing effect combining Weakness I, Night Vision, Invisibility and Resistance I; it remains while searching and ends 3 seconds after successful pickup of that backpack. Combat and other existing cancellation rules still apply. Remnant can preserve one eligible Nexus travel item at death.
+With TotemRemnant installed, death backpacks can receive temporary recovery destinations. With Remnant 0.2.24, death teleport follows the exact moving backpack and prefers a reachable landing 2–4 blocks away, at most 6 horizontal blocks. After teleporting to your own death backpack, Nexus grants one Phasing effect combining Weakness I, Night Vision, Invisibility and Resistance I; it remains while searching and ends 3 seconds after successful pickup of that backpack. Combat and other existing cancellation rules still apply. Remnant can preserve one eligible Nexus travel item at death.
 
 The death-node interface lets players manage their own nodes and administrators inspect broader records. Deleting a destination does not delete the backpack in the world.
 
@@ -62,7 +62,7 @@ Current release 0.3.19 requires Minecraft 26.2, Fabric Loader 0.19.3+, Java 25+,
 
 傳送前先查看報價；一般旅程消耗食物資源，跨維度另需紫水晶碎片。受傷、移動、換掉介面物品、權限或目的地失效，都可能取消準備。羅盤、回收羅盤與地圖都可從陣外傳送，以玩家實際位置為起點；站在有效傳送陣的實際建築範圍內增加穩定度，陣外或低穩定度本身不會禁止傳送。伺服器仍會檢查權限、地圖覆蓋、資源與安全落點。
 
-搭配 Remnant 0.2.24，死亡傳送會追蹤背包最新位置，優先落在可短距離步行抵達的 2–4 格附近，水平最多 6 格。Nexus 的單一「虛化」效果整合虛弱 I、夜視、隱形與抗性 I，搜尋期間持續，成功拾取對應背包後 3 秒消失；戰鬥等既有取消規則仍適用。Remnant 也可於死亡時保留一件有效傳送介面。玩家可管理自己的死亡節點；刪除傳送點不會刪掉世界中的背包。
+搭配 Remnant 0.2.24，死亡傳送會追蹤背包最新位置，優先落在可短距離步行抵達的 2–4 格附近，水平最多 6 格。傳送至自己的死亡背包附近後，Nexus 會給予單一「虛化」效果，整合虛弱 I、夜視、隱形與抗性 I，搜尋期間持續，成功拾取對應背包後 3 秒消失；戰鬥等既有取消規則仍適用。Remnant 也可於死亡時保留一件有效傳送介面。玩家可管理自己的死亡節點；刪除傳送點不會刪掉世界中的背包。
 
 另有**預設關閉**的分散出生點規則，為沒有個人重生點的玩家配置持久、分散的安全位置。
 
