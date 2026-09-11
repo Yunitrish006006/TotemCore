@@ -78,3 +78,9 @@ Patch versions retain public signatures and semantics. Minor versions add
 compatible APIs. Major versions are required for incompatible changes.
 Deprecated APIs remain functional for two lockstep bundle releases and one
 published minor Core release, with a replacement and compatibility test.
+
+## Shared player directory (Core 0.7.20)
+
+`dev.totem.core.api.v1.player.TotemPlayerDirectoryApi` owns world-local joined-player discovery. Call `find(server, uuid)` or `find(server, exactName)` for an optional immutable identity; ambiguous case-insensitive names return empty. `search(server, query, page, pageSize[, excludedIds])` returns a zero-based page with total pages/count, UUID, last seen name and live online status. Query length and page size are bounded to 64; pages beyond the end clamp to the last page. Results are sorted by case-insensitive name then UUID.
+
+All methods require the server thread. Consumers must authorize access and bound incoming request rates before querying; directory membership does not grant feature permissions. The API performs no remote profile lookup. Login updates, persistence and import of existing world player files belong to Core; consumers must not keep separate identity databases. Existing API signatures remain unchanged.

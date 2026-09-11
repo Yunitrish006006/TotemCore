@@ -16,6 +16,7 @@ public final class TotemCore implements ModInitializer {
     @Override
     public void onInitialize() {
         TotemGameRuleCategories.register();
+        dev.totem.core.player.TotemPlayerDirectoryData.register();
         LegacyAliasBootstrap.register();
         LegacyAdvancementMigration.register();
         TotemManualPayloadRegistration.register();

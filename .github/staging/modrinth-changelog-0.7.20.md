@@ -1,0 +1,1 @@
+Add the shared world-local player directory API: persistent joined-player UUIDs and last seen names, offline lookup, bounded search and pagination, live online status, and import from existing world player files. Consumers retain their own permission checks. No network profile lookup is performed.

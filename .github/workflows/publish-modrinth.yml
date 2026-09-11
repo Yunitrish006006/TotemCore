@@ -1,12 +1,7 @@
 name: Publish Modrinth
 
-# Touching this workflow intentionally re-verifies the current release artifact on Modrinth.
+# Publish explicitly after the exact source commit passes Build and a dry run.
 on:
-  push:
-    branches: [master]
-    paths:
-      - gradle.properties
-      - .github/workflows/publish-modrinth.yml
   workflow_dispatch:
     inputs:
       dry_run:

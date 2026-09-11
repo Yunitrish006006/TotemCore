@@ -6,13 +6,13 @@ SavedData。Core 也提供原版
 遊戲規則畫面共用的 Totem 分類；客戶端會替正式 Totem 手冊提供共用雙頁
 版面，也提供不保存功能狀態的世界框線 API，但不取代一般原版書本。
 
-目前版本為 **0.7.16**，API root 為 `dev.totem.core.api.v1`。
+目前版本為 **0.7.20**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用獨立模組時，把 `totem-core-0.7.16.jar` 與相容的功能模組一起放進
+- 使用獨立模組時，把 `totem-core-0.7.20.jar` 與相容的功能模組一起放進
   Client／Server 的 `mods/`。
 - 0.7.x 功能模組改用驗證過的 Core minor 範圍；目前目標為
   `totem-core >=0.7.0 <0.8.0`，不再因 Core patch release 強迫全系列重發。
@@ -47,6 +47,14 @@ SavedData。Core 也提供原版
 | `client.manual.*` | 共用雙頁手冊版面，以及功能模組可選的頁面圖示覆蓋註冊表 |
 | `client.world.TotemWorldOutlines` | 無狀態方塊／長方體框線、任意兩點實線與預先計算線框的提交，支援明確的深度遮擋或穿牆模式 |
 | `client.world.VoxelUnionOutline` | 將方塊集合轉為可快取的最外圍線框；合併連續線段並移除共享邊、平面格線與封閉空腔 |
+
+## 共用玩家目錄
+
+Core 0.7.20 的 `player.TotemPlayerDirectoryApi` 統一保存曾進入此世界的玩家 UUID 與最後使用名稱，提供離線查找、名稱／UUID 搜尋、分頁及即時在線狀態。Nexus 的管理權限選擇使用此 API；其他模組也應使用同一資料來源。
+
+資料以 `totem:known_players` 隨世界保存。既有世界會匯入 `playerdata/*.dat` 對應的 UUID，名稱取自本機快取；無名稱時顯示 UUID，等玩家登入後更新。查詢不連線 Mojang，也不憑名稱生成離線 UUID。同名結果須以 UUID 選擇。
+
+API 必須在伺服器執行緒使用。功能模組仍負責查詢者授權、請求頻率及自己的權限資料。
 
 ## 共用好友系統
 
@@ -84,7 +92,7 @@ DeathBackpackNodeLifecycle.current().ifPresent(lifecycle -> {
 是安全的 no-op。Discord Bridge 可獨立訂閱上述事件，因此 standalone
 組合不需要額外的整合接線。
 
-## 0.7.16 發布重點
+## 0.7.20 發布重點
 
 - 新增可快取的 `VoxelUnionOutline`，把方塊集合轉成精確的最外圍線框。
 - 移除相鄰方塊的共享邊、同平面格線與封閉空腔線，並合併連續線段。

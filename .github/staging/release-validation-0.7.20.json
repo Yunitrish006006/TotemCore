@@ -1,0 +1,11 @@
+{
+  "version": "0.7.20",
+  "java": 25,
+  "minecraft": "26.2",
+  "artifact": "totem-core-0.7.20.jar",
+  "sha512": "5d7dedf2da426713e90ae632ee536c7f042342e0ff707ebacd1c83b7a01324ee589b943f7b9cab9c73e51c532110cbe1c905000642b835fad2648a47694265c5",
+  "unit_tests": 56,
+  "server_gametests": 0,
+  "client_validation": "Nexus offline access owner-present production runtime and dedicated three-JVM Observer E2E passed; Core player directory integration covered.",
+  "independent_review": "Existing session independent reviews passed; release readiness rechecked."
+}
