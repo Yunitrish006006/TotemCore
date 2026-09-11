@@ -1,0 +1,11 @@
+{
+  "version": "0.7.21",
+  "java": 25,
+  "minecraft": "26.2",
+  "artifact": "totem-core-0.7.21.jar",
+  "sha512": "8243070174a291d369bdd97d0c8e82ea6f06abb76889dbe63dc6e8d1c87019fdf1a8086e80ea46218aa6b84ac5ebd3f2d6953c4cad41c68f46596b8ac9460ada",
+  "unit_tests": 56,
+  "server_gametests": 0,
+  "client_validation": "Localized common manual cover and contents verified in Alchemy client GameTests against freshly built Core source; release changes only version and localization resources.",
+  "independent_review": "Independent source, localization and Core release metadata reviews completed without blocking findings."
+}
