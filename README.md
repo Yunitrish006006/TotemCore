@@ -6,13 +6,13 @@ SavedData。Core 也提供原版
 遊戲規則畫面共用的 Totem 分類；客戶端會替正式 Totem 手冊提供共用雙頁
 版面，也提供不保存功能狀態的世界框線 API，但不取代一般原版書本。
 
-目前版本為 **0.7.22**，API root 為 `dev.totem.core.api.v1`。
+目前版本為 **0.7.23**，API root 為 `dev.totem.core.api.v1`。
 
 ## 誰需要安裝
 
 - 一般玩家不會單獨從 TotemCore 得到玩法；它必須搭配至少一個 Totem
   功能模組。
-- 使用獨立模組時，把 `totem-core-0.7.22.jar` 與相容的功能模組一起放進
+- 使用獨立模組時，把 `totem-core-0.7.23.jar` 與相容的功能模組一起放進
   Client／Server 的 `mods/`。
 - 0.7.x 功能模組改用驗證過的 Core minor 範圍；目前目標為
   `totem-core >=0.7.22 <0.8.0`，不再因 Core patch release 強迫全系列重發。

@@ -1,0 +1,11 @@
+{
+  "version": "0.7.23",
+  "java": 25,
+  "minecraft": "26.3",
+  "artifact": "totem-core-0.7.23.jar",
+  "sha512": "c3d2f88252ee23500d91f7d49a742f47ae981f25acf1e3cdfcf76c81aa36319943ea92f7aa0a7caf1685d89cb765a1e83ac6a0ee1f1af00cec9ea071cdbe923d",
+  "unit_tests": 56,
+  "server_gametests": 0,
+  "validation_scope": "Local Java 25 Gradle test passed for the Core 0.7.23 versioned build. Exact-source remote Build and publisher read-back remain mandatory gates.",
+  "independent_review": "Pending independent release review and exact-source CI evidence."
+}
