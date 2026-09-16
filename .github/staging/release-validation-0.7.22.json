@@ -1,0 +1,11 @@
+{
+  "version": "0.7.22",
+  "java": 25,
+  "minecraft": "26.3",
+  "artifact": "totem-core-0.7.22.jar",
+  "sha512": "35e4382fef9b5c5e68db3e67c887391256bb13fc7216c4e7f3d7a42242565e3a5c51d20e8f94671274132d89698e21b81f8e1242301d9c8994c328339b239fcd",
+  "unit_tests": 56,
+  "server_gametests": 0,
+  "validation_scope": "Local Java 25 build and all 56 Core unit tests passed. Migrated consumers loaded Core 0.7.22 in their dedicated-server GameTests. Public Core interfaces and Observer provider protocols are unchanged. Exact-source remote Build and publisher read-back remain mandatory gates.",
+  "independent_review": "Independent API/consumer and build-isolation reviews completed; no blocking findings."
+}
